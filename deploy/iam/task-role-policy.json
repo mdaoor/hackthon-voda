@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "BedrockModels",
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/*",
+        "arn:aws:bedrock:*:*:inference-profile/*"
+      ]
+    },
+    {
+      "Sid": "Voice",
+      "Effect": "Allow",
+      "Action": ["polly:SynthesizeSpeech", "transcribe:StartStreamTranscription", "transcribe:StartStreamTranscriptionWebSocket"],
+      "Resource": "*"
+    }
+  ]
+}

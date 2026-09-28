@@ -1,0 +1,236 @@
+product_id;domain;category;brand_id;product_name;price;quality_tier;style_tags;is_repeatable;is_subscription;available_from;available_regions;compatible_os;offer_discount;description
+I0000;electronics;audio;B00;Audio 01;91.8;1;premium social;0;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic audio offering
+I0001;electronics;audio;B01;Audio 02;120.03;2;social practical;0;0;2025/10/01;north south east west central coastal;any;0.3;Synthetic audio offering
+I0002;electronics;audio;B02;Audio 03;118.07;3;practical compact;0;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic audio offering
+I0003;electronics;audio;B03;Audio 04;173.79;4;premium family;0;0;2025/10/01;north south east west central coastal;any;0.1;Synthetic audio offering
+I0004;electronics;audio;B13;Audio 05;119.76;3;premium social;0;0;2025/09/01;coastal east north;any;0.0;Synthetic audio offering
+I0005;electronics;audio;B07;Audio 06;124.72;4;smart premium;0;0;2025/10/01;coastal north south;any;0.0;Synthetic audio offering
+I0006;electronics;audio;B05;Audio 07;37.40;1;smart practical;0;0;2025/10/01;north south east west central coastal;any;0.3;Synthetic audio offering
+I0007;electronics;audio;B06;Audio 08;46.50;1;eco social;0;0;2025/02/01;north south east west central coastal;any;0.25;Synthetic audio offering
+I0008;electronics;audio;B25;Audio 09;177.11;4;eco classic;0;0;2025/08/01;north south east west central coastal;any;0.0;Synthetic audio offering
+I0009;electronics;audio;B19;Audio 10;60.38;2;cozy family;0;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic audio offering
+I0010;electronics;audio;B02;Audio 11;42.53;1;portable eco;0;0;2025/08/01;north south east west central coastal;any;0.3;Synthetic audio offering
+I0011;electronics;audio;B02;Audio 12;256.67;5;eco gaming;0;0;2025/10/01;north south east west central coastal;any;0.15;Synthetic audio offering
+I0012;electronics;audio;B21;Audio 13;43.53;1;minimal social;0;0;2025/12/01;north south east west central coastal;any;0.25;Synthetic audio offering
+I0013;electronics;audio;B03;Audio 14;146.32;4;minimal eco;0;0;2025/08/01;north south east west central coastal;any;0.25;Synthetic audio offering
+I0014;electronics;audio;B02;Audio 15;136.08;4;practical durable;0;0;2025/07/01;north south east west central coastal;any;0.15;Synthetic audio offering
+I0015;electronics;audio;B04;Audio 16;62.94;2;practical smart;0;0;2025/11/01;coastal east west;any;0.0;Synthetic audio offering
+I0016;electronics;smartphone;B17;Smartphone 01;95.22;1;compact premium;0;0;2026/06/01;north south east west central coastal;ios;0.1;Synthetic smartphone offering
+I0017;electronics;smartphone;B12;Smartphone 02;336.98;3;practical durable;0;0;2025/11/01;central north west;any;0.1;Synthetic smartphone offering
+I0018;electronics;smartphone;B19;Smartphone 03;522.28;4;smart premium;0;0;2025/08/01;north south east west central coastal;any;0.0;Synthetic smartphone offering
+I0019;electronics;smartphone;B08;Smartphone 04;117.18;1;sporty social;0;0;2025/10/01;central coastal north;any;0.3;Synthetic smartphone offering
+I0020;electronics;smartphone;B15;Smartphone 05;346.14;3;social classic;0;0;2025/02/01;central coastal west;android;0.0;Synthetic smartphone offering
+I0021;electronics;smartphone;B27;Smartphone 06;162.13;2;sporty eco;0;0;2025/09/01;north south east west central coastal;android;0.3;Synthetic smartphone offering
+I0022;electronics;smartphone;B25;Smartphone 07;97.13;1;eco practical;0;0;2025/11/01;north south east west central coastal;ios;0.0;Synthetic smartphone offering
+I0023;electronics;smartphone;B08;Smartphone 08;210.11;2;compact gaming;0;0;2025/01/01;north south east west central coastal;android;0.15;Synthetic smartphone offering
+I0024;electronics;smartphone;B15;Smartphone 09;218.94;2;classic portable;0;0;2025/08/01;coastal east north;android;0.0;Synthetic smartphone offering
+I0025;electronics;smartphone;B28;Smartphone 10;900.00;5;premium classic;0;0;2025/12/01;central east north;any;0.15;Synthetic smartphone offering
+I0026;electronics;smartphone;B00;Smartphone 11;186.86;2;social portable;0;0;2025/12/01;central coastal west;android;0.0;Synthetic smartphone offering
+I0027;electronics;smartphone;B17;Smartphone 12;182.38;2;minimal practical;0;0;2025/11/01;north south east west central coastal;ios;0.0;Synthetic smartphone offering
+I0028;electronics;wearable;B26;Wearable 01;295.81;5;durable minimal;0;0;2025/03/01;north south east west central coastal;any;0.0;Synthetic wearable offering
+I0029;electronics;wearable;B28;Wearable 02;68.62;2;sporty compact;0;0;2025/03/01;north south east west central coastal;ios;0.0;Synthetic wearable offering
+I0030;electronics;wearable;B00;Wearable 03;289.49;4;sporty smart;0;0;2025/08/01;central coastal south;android;0.25;Synthetic wearable offering
+I0031;electronics;wearable;B07;Wearable 04;79.41;2;durable social;0;0;2025/02/01;north south east west central coastal;ios;0.0;Synthetic wearable offering
+I0032;electronics;wearable;B16;Wearable 05;90.56;2;sporty classic;0;0;2025/02/01;north south east west central coastal;any;0.25;Synthetic wearable offering
+I0033;electronics;wearable;B29;Wearable 06;396.10;5;classic sporty;0;0;2025/12/01;north south east west central coastal;android;0.0;Synthetic wearable offering
+I0034;electronics;wearable;B02;Wearable 07;420.00;5;classic practical;0;0;2025/02/01;north south east west central coastal;ios;0.1;Synthetic wearable offering
+I0035;electronics;wearable;B12;Wearable 08;98.69;2;portable practical;0;0;2025/08/01;coastal east south;android;0.0;Synthetic wearable offering
+I0036;electronics;wearable;B11;Wearable 09;220.98;4;compact practical;0;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic wearable offering
+I0037;electronics;wearable;B09;Wearable 10;127.23;3;eco sporty;0;0;2025/07/01;north south east west central coastal;any;0.25;Synthetic wearable offering
+I0038;electronics;wearable;B27;Wearable 11;420.00;5;portable compact;0;0;2025/05/01;coastal east north;android;0.1;Synthetic wearable offering
+I0039;electronics;wearable;B13;Wearable 12;152.60;3;sporty cozy;0;0;2025/01/01;north south east west central coastal;ios;0.0;Synthetic wearable offering
+I0040;electronics;tablet;B14;Tablet 01;120.85;1;social portable;0;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic tablet offering
+I0041;electronics;tablet;B01;Tablet 02;147.87;1;family cozy;0;0;2025/02/01;north south east west central coastal;android;0.0;Synthetic tablet offering
+I0042;electronics;tablet;B08;Tablet 03;178.16;2;family sporty;0;0;2025/05/01;north south east west central coastal;android;0.0;Synthetic tablet offering
+I0043;electronics;tablet;B13;Tablet 04;156.95;1;sporty compact;0;0;2025/02/01;north south east west central coastal;ios;0.3;Synthetic tablet offering
+I0044;electronics;tablet;B04;Tablet 05;512.57;4;sporty family;0;0;2025/06/01;north south east west central coastal;any;0.3;Synthetic tablet offering
+I0045;electronics;tablet;B02;Tablet 06;611.51;4;gaming practical;0;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic tablet offering
+I0046;electronics;tablet;B00;Tablet 07;570.55;4;family cozy;0;0;2025/03/01;north south east west central coastal;ios;0.15;Synthetic tablet offering
+I0047;electronics;tablet;B00;Tablet 08;291.76;3;sporty eco;0;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic tablet offering
+I0048;electronics;tablet;B04;Tablet 09;300.96;3;sporty minimal;0;0;2025/02/01;north south east west central coastal;android;0.0;Synthetic tablet offering
+I0049;electronics;tablet;B12;Tablet 10;496.33;4;family gaming;0;0;2025/11/01;north south east west central coastal;android;0.25;Synthetic tablet offering
+I0050;electronics;tablet;B04;Tablet 11;338.11;3;family durable;0;0;2025/12/01;north south east west central coastal;ios;0.2;Synthetic tablet offering
+I0051;electronics;tablet;B07;Tablet 12;750.00;5;gaming portable;0;0;2025/12/01;north south east west central coastal;any;0.3;Synthetic tablet offering
+I0052;electronics;laptop;B00;Laptop 01;363.31;1;eco social;0;0;2025/08/01;north south east west central coastal;any;0.3;Synthetic laptop offering
+I0053;electronics;laptop;B02;Laptop 02;1600.00;5;premium classic;0;0;2025/12/01;north south east west central coastal;any;0.2;Synthetic laptop offering
+I0054;electronics;laptop;B07;Laptop 03;1219.09;5;family portable;0;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic laptop offering
+I0055;electronics;laptop;B06;Laptop 04;1056.40;4;classic minimal;0;0;2025/01/01;north south east west central coastal;any;0.3;Synthetic laptop offering
+I0056;electronics;laptop;B15;Laptop 05;383.18;1;minimal durable;0;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic laptop offering
+I0057;electronics;laptop;B09;Laptop 06;447.25;1;social durable;0;0;2025/08/01;north south east west central coastal;any;0.2;Synthetic laptop offering
+I0058;electronics;laptop;B09;Laptop 07;1083.03;4;sporty compact;0;0;2025/02/01;north south east west central coastal;any;0.0;Synthetic laptop offering
+I0059;electronics;laptop;B04;Laptop 08;892.80;4;classic family;0;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic laptop offering
+I0060;electronics;laptop;B15;Laptop 09;1315.95;5;cozy minimal;0;0;2025/02/01;north south east west central coastal;any;0.0;Synthetic laptop offering
+I0061;electronics;laptop;B11;Laptop 10;991.94;4;classic minimal;0;0;2025/05/01;north south east west central coastal;any;0.1;Synthetic laptop offering
+I0062;electronics;laptop;B22;Laptop 11;1027.18;4;premium eco;0;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic laptop offering
+I0063;electronics;laptop;B24;Laptop 12;378.98;1;eco social;0;0;2025/10/01;north south east west central coastal;any;0.1;Synthetic laptop offering
+I0064;electronics;tv;B13;TV 01;609.11;3;premium minimal;0;0;2025/03/01;north south east west central coastal;any;0.0;Synthetic tv offering
+I0065;electronics;tv;B14;TV 02;1199.23;5;portable smart;0;0;2025/12/01;coastal south west;any;0.1;Synthetic tv offering
+I0066;electronics;tv;B13;TV 03;1400.00;5;family classic;0;0;2025/09/01;north south east west central coastal;any;0.15;Synthetic tv offering
+I0067;electronics;tv;B17;TV 04;488.45;3;durable minimal;0;0;2025/11/01;north south east west central coastal;any;0.15;Synthetic tv offering
+I0068;electronics;tv;B29;TV 05;740.91;4;social compact;0;0;2025/08/01;north south east west central coastal;any;0.15;Synthetic tv offering
+I0069;electronics;tv;B02;TV 06;655.01;3;practical sporty;0;0;2025/02/01;north south east west central coastal;any;0.2;Synthetic tv offering
+I0070;electronics;tv;B12;TV 07;479.90;3;cozy compact;0;0;2025/07/01;central coastal west;any;0.0;Synthetic tv offering
+I0071;electronics;tv;B12;TV 08;481.20;3;family cozy;0;0;2025/02/01;central coastal south;any;0.0;Synthetic tv offering
+I0072;electronics;tv;B18;TV 09;936.73;4;family premium;0;0;2025/07/01;north south east west central coastal;any;0.15;Synthetic tv offering
+I0073;electronics;tv;B21;TV 10;667.15;4;gaming sporty;0;0;2025/04/01;north south west;any;0.2;Synthetic tv offering
+I0074;electronics;tv;B18;TV 11;250.44;1;minimal portable;0;0;2025/01/01;central coastal north;any;0.0;Synthetic tv offering
+I0075;electronics;tv;B03;TV 12;209.65;1;practical minimal;0;0;2025/11/01;north south east west central coastal;any;0.0;Synthetic tv offering
+I0076;electronics;smart_home;B09;Smart Home 01;36.61;1;compact smart;0;0;2026/06/01;north south east west central coastal;any;0.2;Synthetic smart home offering
+I0077;electronics;smart_home;B13;Smart Home 02;127.18;4;gaming compact;0;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic smart home offering
+I0078;electronics;smart_home;B29;Smart Home 03;66.10;3;minimal gaming;0;0;2025/05/01;north south east west central coastal;any;0.1;Synthetic smart home offering
+I0079;electronics;smart_home;B25;Smart Home 04;69.67;3;eco durable;0;0;2025/11/01;north south east west central coastal;any;0.0;Synthetic smart home offering
+I0080;electronics;smart_home;B03;Smart Home 05;97.04;3;compact classic;0;0;2025/08/01;central east south;any;0.0;Synthetic smart home offering
+I0081;electronics;smart_home;B04;Smart Home 06;215.28;5;compact classic;0;0;2026/06/01;north south east west central coastal;any;0.25;Synthetic smart home offering
+I0082;electronics;smart_home;B14;Smart Home 07;105.39;4;cozy practical;0;0;2025/12/01;north south east west central coastal;any;0.1;Synthetic smart home offering
+I0083;electronics;smart_home;B01;Smart Home 08;105.47;3;practical eco;0;0;2025/11/01;north south east west central coastal;any;0.15;Synthetic smart home offering
+I0084;electronics;smart_home;B02;Smart Home 09;92.04;3;eco gaming;0;0;2026/06/01;north south east west central coastal;any;0.0;Synthetic smart home offering
+I0085;electronics;smart_home;B26;Smart Home 10;91.86;3;sporty portable;0;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic smart home offering
+I0086;electronics;smart_home;B23;Smart Home 11;119.87;4;compact eco;0;0;2025/08/01;north south east west central coastal;any;0.0;Synthetic smart home offering
+I0087;electronics;smart_home;B02;Smart Home 12;110.42;4;portable minimal;0;0;2025/01/01;north south east west central coastal;any;0.15;Synthetic smart home offering
+I0088;electronics;phone_accessory;B29;Phone Accessory 01;11.71;1;cozy eco;1;0;2025/05/01;north south east west central coastal;android;0.0;Synthetic phone accessory offering
+I0089;electronics;phone_accessory;B15;Phone Accessory 02;26.15;3;cozy portable;1;0;2025/01/01;north south east west central coastal;any;0.0;Synthetic phone accessory offering
+I0090;electronics;phone_accessory;B07;Phone Accessory 03;52.67;4;family smart;1;0;2025/12/01;coastal south west;ios;0.25;Synthetic phone accessory offering
+I0091;electronics;phone_accessory;B20;Phone Accessory 04;30.77;3;portable gaming;1;0;2025/03/01;north south east west central coastal;ios;0.0;Synthetic phone accessory offering
+I0092;electronics;phone_accessory;B05;Phone Accessory 05;10.70;1;practical smart;1;0;2025/08/01;coastal east north;ios;0.15;Synthetic phone accessory offering
+I0093;electronics;phone_accessory;B09;Phone Accessory 06;14.24;2;minimal compact;1;0;2025/11/01;north south east west central coastal;any;0.0;Synthetic phone accessory offering
+I0094;electronics;phone_accessory;B06;Phone Accessory 07;27.25;3;durable family;1;0;2025/04/01;north south east west central coastal;android;0.25;Synthetic phone accessory offering
+I0095;electronics;phone_accessory;B03;Phone Accessory 08;21.38;3;compact sporty;1;0;2025/02/01;north south east west central coastal;any;0.0;Synthetic phone accessory offering
+I0096;electronics;phone_accessory;B06;Phone Accessory 09;12.06;1;gaming classic;1;0;2025/10/01;east north south;android;0.25;Synthetic phone accessory offering
+I0097;electronics;phone_accessory;B22;Phone Accessory 10;12.30;1;classic cozy;1;0;2025/01/01;north south east west central coastal;any;0.25;Synthetic phone accessory offering
+I0098;electronics;phone_accessory;B29;Phone Accessory 11;57.31;5;eco practical;1;0;2025/01/01;north south east west central coastal;any;0.3;Synthetic phone accessory offering
+I0099;electronics;phone_accessory;B17;Phone Accessory 12;18.22;2;smart minimal;1;0;2025/02/01;north south east west central coastal;any;0.15;Synthetic phone accessory offering
+I0100;home;furniture;B05;Furniture 01;473.27;4;smart minimal;0;0;2025/11/01;north south east west central coastal;any;0.3;Synthetic furniture offering
+I0101;home;furniture;B28;Furniture 02;720.65;4;family minimal;0;0;2025/01/01;north south east west central coastal;any;0.25;Synthetic furniture offering
+I0102;home;furniture;B06;Furniture 03;326.47;3;portable gaming;0;0;2025/04/01;north south east west central coastal;any;0.1;Synthetic furniture offering
+I0103;home;furniture;B04;Furniture 04;73.03;1;social gaming;0;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic furniture offering
+I0104;home;furniture;B05;Furniture 05;71.86;1;portable smart;0;0;2025/10/01;north south east west central coastal;any;0.2;Synthetic furniture offering
+I0105;home;furniture;B09;Furniture 06;151.43;2;practical social;0;0;2025/08/01;north south east west central coastal;any;0.0;Synthetic furniture offering
+I0106;home;furniture;B22;Furniture 07;168.10;2;classic eco;0;0;2025/11/01;north south east west central coastal;any;0.25;Synthetic furniture offering
+I0107;home;furniture;B18;Furniture 08;225.08;2;cozy smart;0;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic furniture offering
+I0108;home;furniture;B01;Furniture 09;199.46;2;practical smart;0;0;2025/03/01;north south east west central coastal;any;0.0;Synthetic furniture offering
+I0109;home;furniture;B24;Furniture 10;1100.00;5;minimal eco;0;0;2025/10/01;north south east west central coastal;any;0.3;Synthetic furniture offering
+I0110;home;furniture;B05;Furniture 11;391.97;3;compact smart;0;0;2025/06/01;north south east west central coastal;any;0.15;Synthetic furniture offering
+I0111;home;furniture;B26;Furniture 12;142.05;1;classic compact;0;0;2025/10/01;north south east west central coastal;any;0.15;Synthetic furniture offering
+I0112;home;kitchen;B16;Kitchen 01;62.85;2;social practical;0;0;2025/06/01;north south east west central coastal;any;0.15;Synthetic kitchen offering
+I0113;home;kitchen;B20;Kitchen 02;367.10;5;practical social;0;0;2025/01/01;central east north;any;0.1;Synthetic kitchen offering
+I0114;home;kitchen;B09;Kitchen 03;38.18;2;cozy durable;0;0;2025/02/01;north south east west central coastal;any;0.15;Synthetic kitchen offering
+I0115;home;kitchen;B28;Kitchen 04;69.85;2;compact social;0;0;2025/06/01;central east south;any;0.0;Synthetic kitchen offering
+I0116;home;kitchen;B11;Kitchen 05;181.63;4;classic compact;0;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic kitchen offering
+I0117;home;kitchen;B03;Kitchen 06;26.78;1;minimal family;0;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic kitchen offering
+I0118;home;kitchen;B08;Kitchen 07;268.81;5;gaming classic;0;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic kitchen offering
+I0119;home;kitchen;B10;Kitchen 08;371.94;5;portable eco;0;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic kitchen offering
+I0120;home;kitchen;B27;Kitchen 09;20.16;1;durable premium;0;0;2025/09/01;north south east west central coastal;any;0.3;Synthetic kitchen offering
+I0121;home;kitchen;B20;Kitchen 10;380.00;5;durable premium;0;0;2025/04/01;north south east west central coastal;any;0.25;Synthetic kitchen offering
+I0122;home;kitchen;B01;Kitchen 11;211.34;4;premium practical;0;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic kitchen offering
+I0123;home;kitchen;B04;Kitchen 12;23.87;1;sporty eco;0;0;2025/07/01;north south east west central coastal;any;0.25;Synthetic kitchen offering
+I0124;home;appliance;B03;Appliance 01;212.29;2;practical gaming;0;0;2025/04/01;north south east west central coastal;any;0.15;Synthetic appliance offering
+I0125;home;appliance;B20;Appliance 02;149.94;1;portable family;0;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic appliance offering
+I0126;home;appliance;B05;Appliance 03;950.00;5;cozy classic;0;0;2025/09/01;north south east west central coastal;any;0.0;Synthetic appliance offering
+I0127;home;appliance;B00;Appliance 04;126.57;1;smart practical;0;0;2025/01/01;north south east west central coastal;any;0.0;Synthetic appliance offering
+I0128;home;appliance;B20;Appliance 05;931.32;5;practical smart;0;0;2025/10/01;north south east west central coastal;any;0.3;Synthetic appliance offering
+I0129;home;appliance;B22;Appliance 06;654.34;4;family social;0;0;2025/01/01;north south east west central coastal;any;0.15;Synthetic appliance offering
+I0130;home;appliance;B03;Appliance 07;667.10;5;durable classic;0;0;2025/11/01;north south east west central coastal;any;0.0;Synthetic appliance offering
+I0131;home;appliance;B21;Appliance 08;285.31;3;eco durable;0;0;2025/11/01;coastal east north;any;0.1;Synthetic appliance offering
+I0132;home;appliance;B05;Appliance 09;950.00;5;compact social;0;0;2025/04/01;east north south;any;0.0;Synthetic appliance offering
+I0133;home;appliance;B26;Appliance 10;303.50;3;cozy compact;0;0;2025/11/01;north south east west central coastal;any;0.3;Synthetic appliance offering
+I0134;home;appliance;B02;Appliance 11;885.84;5;durable premium;0;0;2025/04/01;east south west;any;0.25;Synthetic appliance offering
+I0135;home;appliance;B22;Appliance 12;950.00;5;premium social;0;0;2025/03/01;north south east west central coastal;any;0.0;Synthetic appliance offering
+I0136;home;bedding;B27;Bedding 01;22.66;1;minimal gaming;1;0;2025/02/01;north south east west central coastal;any;0.0;Synthetic bedding offering
+I0137;home;bedding;B01;Bedding 02;260.00;5;gaming sporty;1;0;2025/04/01;coastal north west;any;0.0;Synthetic bedding offering
+I0138;home;bedding;B03;Bedding 03;37.49;1;portable minimal;1;0;2025/11/01;north south east west central coastal;any;0.15;Synthetic bedding offering
+I0139;home;bedding;B08;Bedding 04;49.41;2;compact family;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic bedding offering
+I0140;home;bedding;B00;Bedding 05;80.88;3;eco portable;1;0;2025/10/01;central east west;any;0.1;Synthetic bedding offering
+I0141;home;bedding;B18;Bedding 06;152.17;4;classic durable;1;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic bedding offering
+I0142;home;bedding;B03;Bedding 07;71.27;3;compact family;1;0;2026/06/01;north south east west central coastal;any;0.15;Synthetic bedding offering
+I0143;home;bedding;B09;Bedding 08;180.42;4;classic cozy;1;0;2025/09/01;north south east west central coastal;any;0.0;Synthetic bedding offering
+I0144;home;bedding;B12;Bedding 09;49.82;2;practical social;1;0;2025/11/01;coastal north west;any;0.0;Synthetic bedding offering
+I0145;home;bedding;B28;Bedding 10;194.80;4;smart minimal;1;0;2025/04/01;north south east west central coastal;any;0.1;Synthetic bedding offering
+I0146;home;bedding;B04;Bedding 11;237.44;5;minimal compact;1;0;2025/06/01;central north south;any;0.2;Synthetic bedding offering
+I0147;home;bedding;B10;Bedding 12;176.14;4;practical classic;1;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic bedding offering
+I0148;home;lighting;B04;Lighting 01;119.59;4;sporty compact;1;0;2025/12/01;north south east west central coastal;any;0.25;Synthetic lighting offering
+I0149;home;lighting;B08;Lighting 02;39.80;2;cozy sporty;1;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic lighting offering
+I0150;home;lighting;B13;Lighting 03;20.84;1;compact smart;1;0;2025/03/01;north south east west central coastal;any;0.0;Synthetic lighting offering
+I0151;home;lighting;B12;Lighting 04;57.18;3;social family;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic lighting offering
+I0152;home;lighting;B00;Lighting 05;119.83;4;minimal family;1;0;2025/03/01;north south east west central coastal;any;0.1;Synthetic lighting offering
+I0153;home;lighting;B23;Lighting 06;35.28;2;cozy gaming;1;0;2025/07/01;north south east west central coastal;any;0.3;Synthetic lighting offering
+I0154;home;lighting;B28;Lighting 07;180.00;5;minimal social;1;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic lighting offering
+I0155;home;lighting;B19;Lighting 08;92.92;4;durable minimal;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic lighting offering
+I0156;home;lighting;B01;Lighting 09;112.06;4;gaming practical;1;0;2025/08/01;east north west;any;0.0;Synthetic lighting offering
+I0157;home;lighting;B17;Lighting 10;60.64;3;portable compact;1;0;2025/02/01;north south east west central coastal;any;0.15;Synthetic lighting offering
+I0158;home;lighting;B21;Lighting 11;34.71;2;minimal portable;1;0;2025/12/01;central east west;any;0.0;Synthetic lighting offering
+I0159;home;lighting;B00;Lighting 12;35.24;2;social durable;1;0;2025/05/01;coastal east north;any;0.0;Synthetic lighting offering
+I0160;home;cleaning;B23;Cleaning 01;6.85;1;durable minimal;1;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic cleaning offering
+I0161;home;cleaning;B25;Cleaning 02;44.99;4;compact portable;1;0;2025/03/01;central south west;any;0.0;Synthetic cleaning offering
+I0162;home;cleaning;B14;Cleaning 03;11.94;2;compact practical;1;0;2025/11/01;north south east west central coastal;any;0.1;Synthetic cleaning offering
+I0163;home;cleaning;B21;Cleaning 04;25.09;3;portable classic;1;0;2025/04/01;north south east west central coastal;any;0.1;Synthetic cleaning offering
+I0164;home;cleaning;B15;Cleaning 05;27.29;3;classic premium;1;0;2025/11/01;coastal east south;any;0.15;Synthetic cleaning offering
+I0165;home;cleaning;B16;Cleaning 06;37.17;4;eco practical;1;0;2025/10/01;central north west;any;0.0;Synthetic cleaning offering
+I0166;home;cleaning;B27;Cleaning 07;21.12;3;premium compact;1;0;2025/10/01;central coastal east;any;0.0;Synthetic cleaning offering
+I0167;home;cleaning;B19;Cleaning 08;10.65;2;portable practical;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic cleaning offering
+I0168;home;cleaning;B16;Cleaning 09;60.00;5;sporty portable;1;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic cleaning offering
+I0169;home;cleaning;B15;Cleaning 10;6.93;1;social sporty;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic cleaning offering
+I0170;home;cleaning;B27;Cleaning 11;37.70;4;practical durable;1;0;2025/08/01;north south east west central coastal;any;0.25;Synthetic cleaning offering
+I0171;home;cleaning;B13;Cleaning 12;6.41;1;durable cozy;1;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic cleaning offering
+I0172;home;decor;B01;Decor 01;116.29;4;practical minimal;1;0;2026/06/01;north south east west central coastal;any;0.25;Synthetic decor offering
+I0173;home;decor;B20;Decor 02;56.07;3;classic gaming;1;0;2026/06/01;north south east west central coastal;any;0.1;Synthetic decor offering
+I0174;home;decor;B09;Decor 03;30.08;2;eco gaming;1;0;2025/09/01;north south east west central coastal;any;0.0;Synthetic decor offering
+I0175;home;decor;B08;Decor 04;80.47;4;premium family;1;0;2025/08/01;north south east west central coastal;any;0.2;Synthetic decor offering
+I0176;home;decor;B04;Decor 05;122.83;5;classic portable;1;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic decor offering
+I0177;home;decor;B12;Decor 06;150.00;5;premium smart;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic decor offering
+I0178;home;decor;B29;Decor 07;38.95;3;gaming classic;1;0;2025/11/01;north south east west central coastal;any;0.2;Synthetic decor offering
+I0179;home;decor;B06;Decor 08;148.01;5;minimal gaming;1;0;2025/10/01;north south east west central coastal;any;0.0;Synthetic decor offering
+I0180;home;decor;B24;Decor 09;15.13;1;portable practical;1;0;2025/03/01;north south east west central coastal;any;0.1;Synthetic decor offering
+I0181;home;decor;B05;Decor 10;17.34;1;eco practical;1;0;2025/09/01;north south east west central coastal;any;0.0;Synthetic decor offering
+I0182;home;decor;B01;Decor 11;63.35;4;cozy minimal;1;0;2025/01/01;north south east west central coastal;any;0.2;Synthetic decor offering
+I0183;home;decor;B18;Decor 12;14.72;1;durable smart;1;0;2025/01/01;north south east west central coastal;any;0.25;Synthetic decor offering
+I0184;lifestyle;fitness;B00;Fitness 01;68.29;2;social gaming;0;0;2025/04/01;north south east west central coastal;any;0.3;Synthetic fitness offering
+I0185;lifestyle;fitness;B08;Fitness 02;212.27;4;social gaming;0;0;2025/02/01;north south east west central coastal;any;0.0;Synthetic fitness offering
+I0186;lifestyle;fitness;B23;Fitness 03;383.25;5;practical premium;0;0;2025/12/01;north south east west central coastal;any;0.0;Synthetic fitness offering
+I0187;lifestyle;fitness;B22;Fitness 04;35.74;1;classic gaming;0;0;2025/05/01;north south east west central coastal;any;0.0;Synthetic fitness offering
+I0188;lifestyle;fitness;B27;Fitness 05;15.55;1;minimal gaming;0;0;2025/05/01;east north west;any;0.0;Synthetic fitness offering
+I0189;lifestyle;fitness;B11;Fitness 06;293.35;4;cozy durable;0;0;2025/11/01;north south east west central coastal;any;0.0;Synthetic fitness offering
+I0190;lifestyle;fitness;B10;Fitness 07;72.23;2;smart portable;0;0;2025/05/01;north south east west central coastal;any;0.25;Synthetic fitness offering
+I0191;lifestyle;fitness;B18;Fitness 08;146.04;3;minimal durable;0;0;2025/03/01;central east north;any;0.0;Synthetic fitness offering
+I0192;lifestyle;fitness;B22;Fitness 09;348.36;4;smart minimal;0;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic fitness offering
+I0193;lifestyle;fitness;B21;Fitness 10;24.97;1;practical cozy;0;0;2025/10/01;east north south;any;0.2;Synthetic fitness offering
+I0194;lifestyle;fitness;B09;Fitness 11;243.64;4;sporty classic;0;0;2025/04/01;north south east west central coastal;any;0.0;Synthetic fitness offering
+I0195;lifestyle;fitness;B25;Fitness 12;323.43;5;durable compact;0;0;2025/08/01;central north west;any;0.2;Synthetic fitness offering
+I0196;lifestyle;travel;B06;Travel 01;123.53;3;cozy sporty;0;0;2025/09/01;central east west;any;0.0;Synthetic travel offering
+I0197;lifestyle;travel;B27;Travel 02;62.20;2;family eco;0;0;2025/06/01;north south east west central coastal;any;0.2;Synthetic travel offering
+I0198;lifestyle;travel;B11;Travel 03;67.33;2;classic eco;0;0;2025/03/01;east north west;any;0.0;Synthetic travel offering
+I0199;lifestyle;travel;B13;Travel 04;105.90;3;premium compact;0;0;2025/05/01;central south west;any;0.0;Synthetic travel offering
+I0200;lifestyle;travel;B02;Travel 05;43.11;1;gaming cozy;0;0;2025/04/01;coastal east north;any;0.1;Synthetic travel offering
+I0201;lifestyle;travel;B12;Travel 06;38.15;1;gaming durable;0;0;2025/02/01;north south east west central coastal;any;0.3;Synthetic travel offering
+I0202;lifestyle;travel;B16;Travel 07;27.12;1;eco cozy;0;0;2025/02/01;north south east west central coastal;any;0.3;Synthetic travel offering
+I0203;lifestyle;travel;B28;Travel 08;171.76;4;eco compact;0;0;2025/05/01;coastal north south;any;0.0;Synthetic travel offering
+I0204;lifestyle;travel;B01;Travel 09;320.00;5;premium family;0;0;2025/12/01;north south east west central coastal;any;0.15;Synthetic travel offering
+I0205;lifestyle;travel;B03;Travel 10;42.82;1;compact minimal;0;0;2025/10/01;north south east west central coastal;any;0.3;Synthetic travel offering
+I0206;lifestyle;travel;B29;Travel 11;171.83;4;social eco;0;0;2025/03/01;north south east west central coastal;any;0.0;Synthetic travel offering
+I0207;lifestyle;travel;B27;Travel 12;46.54;1;portable premium;0;0;2025/04/01;north south east west central coastal;any;0.25;Synthetic travel offering
+I0208;lifestyle;beauty;B26;Beauty 01;35.09;3;classic social;1;0;2025/08/01;central north west;any;0.0;Synthetic beauty offering
+I0209;lifestyle;beauty;B17;Beauty 02;17.09;2;practical eco;1;0;2025/01/01;north south east west central coastal;any;0.15;Synthetic beauty offering
+I0210;lifestyle;beauty;B10;Beauty 03;13.70;2;smart gaming;1;0;2025/01/01;north south east west central coastal;any;0.0;Synthetic beauty offering
+I0211;lifestyle;beauty;B29;Beauty 04;12.65;2;classic gaming;1;0;2026/06/01;north south east west central coastal;any;0.3;Synthetic beauty offering
+I0212;lifestyle;beauty;B07;Beauty 05;18.84;2;social family;1;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic beauty offering
+I0213;lifestyle;beauty;B16;Beauty 06;13.15;2;practical premium;1;0;2025/08/01;east north south;any;0.0;Synthetic beauty offering
+I0214;lifestyle;beauty;B06;Beauty 07;18.02;2;sporty family;1;0;2026/06/01;north south east west central coastal;any;0.1;Synthetic beauty offering
+I0215;lifestyle;beauty;B02;Beauty 08;30.56;3;practical sporty;1;0;2025/12/01;north south east west central coastal;any;0.25;Synthetic beauty offering
+I0216;lifestyle;beauty;B25;Beauty 09;10.91;1;portable family;1;0;2025/03/01;north south east west central coastal;any;0.3;Synthetic beauty offering
+I0217;lifestyle;beauty;B16;Beauty 10;14.69;2;social durable;1;0;2025/07/01;north south east west central coastal;any;0.0;Synthetic beauty offering
+I0218;lifestyle;beauty;B04;Beauty 11;31.94;3;gaming classic;1;0;2025/07/01;north south east west central coastal;any;0.15;Synthetic beauty offering
+I0219;lifestyle;beauty;B11;Beauty 12;28.83;3;eco premium;1;0;2025/06/01;north south east west central coastal;any;0.0;Synthetic beauty offering
+I0220;services;streaming;B24;Streaming Plan 01;25.00;5;social gaming;1;1;2025/04/01;north south east west central coastal;any;0.0;Synthetic streaming plan offering
+I0221;services;streaming;B00;Streaming Plan 02;17.68;4;family social;1;1;2025/09/01;coastal north west;any;0.0;Synthetic streaming plan offering
+I0222;services;streaming;B00;Streaming Plan 03;7.50;2;practical gaming;1;1;2025/05/01;north south east west central coastal;any;0.0;Synthetic streaming plan offering
+I0223;services;streaming;B03;Streaming Plan 04;6.18;1;family premium;1;1;2025/09/01;central coastal west;any;0.15;Synthetic streaming plan offering
+I0224;services;streaming;B03;Streaming Plan 05;12.78;3;premium family;1;1;2025/08/01;north south east west central coastal;any;0.0;Synthetic streaming plan offering
+I0225;services;mobile_plan;B14;Mobile Plan 01;13.54;1;sporty cozy;1;1;2025/04/01;north south east west central coastal;any;0.25;Synthetic mobile plan offering
+I0226;services;mobile_plan;B01;Mobile Plan 02;34.47;4;minimal smart;1;1;2025/10/01;north south east west central coastal;any;0.2;Synthetic mobile plan offering
+I0227;services;mobile_plan;B25;Mobile Plan 03;44.97;4;eco gaming;1;1;2025/06/01;north south east west central coastal;any;0.25;Synthetic mobile plan offering
+I0228;services;mobile_plan;B27;Mobile Plan 04;29.52;3;premium eco;1;1;2025/11/01;north south east west central coastal;any;0.0;Synthetic mobile plan offering
+I0229;services;mobile_plan;B21;Mobile Plan 05;39.62;4;social sporty;1;1;2025/06/01;north south east west central coastal;any;0.2;Synthetic mobile plan offering
+I0230;services;device_care;B08;Device Care 01;4.54;1;smart portable;1;1;2025/01/01;central north west;any;0.25;Synthetic device care offering
+I0231;services;device_care;B07;Device Care 02;16.70;5;premium cozy;1;1;2025/02/01;north south east west central coastal;any;0.1;Synthetic device care offering
+I0232;services;device_care;B28;Device Care 03;4.39;1;minimal practical;1;1;2025/10/01;north south east west central coastal;any;0.2;Synthetic device care offering
+I0233;services;device_care;B18;Device Care 04;7.94;3;practical classic;1;1;2025/03/01;north south east west central coastal;any;0.1;Synthetic device care offering
+I0234;services;device_care;B07;Device Care 05;8.64;3;durable sporty;1;1;2025/08/01;north south east west central coastal;any;0.25;Synthetic device care offering

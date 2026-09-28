@@ -1,0 +1,53 @@
+flowchart LR
+    subgraph Client["Browser (HTTPS)"]
+        ID["Customer ID box<br/>(replaces login)"]
+        TXT["Text chat"]
+        MIC["Push-to-talk mic<br/>16 kHz PCM"]
+        UI["Product cards, checkout summary<br/>Confirm button<br/>Home / Shop / Rewards / Basket"]
+    end
+
+    subgraph ECS["Amazon ECS Express Mode (Fargate + ALB, HTTPS)"]
+        API["FastAPI<br/>session binds user_id"]
+        STT["Speech-to-text"]
+        TTS["Text-to-speech"]
+        subgraph Agent["Companion agent (Converse tool loop)"]
+            CTX["Context builder<br/>profile, activity insights, recommender picks,<br/>proactive signals, catalogue map,<br/>session + long-term memory, live basket"]
+            LOOP["LLM reasoning<br/>plan, ask, recommend, cross-sell"]
+            GATE{"Confirmation gate<br/>customer's own words<br/>or Confirm button"}
+        end
+        subgraph Tools["Tools"]
+            DISC["search_products, get_recommendations,<br/>get_product_details, compare_products,<br/>get_complementary_products, get_customer_activity"]
+            MEMT["update_customer_memory, present_options"]
+            STARTER["Supplied starter functions<br/>get_basket, add_to_basket, update_basket,<br/>remove_from_basket, prepare_checkout, get_order"]
+            ORDER["place_order to confirm_order<br/>(customer_confirmed=True set by app)"]
+        end
+        subgraph Data["Data and state"]
+            TRAIN[("train: profiles<br/>relevant_items removed")]
+            PROD[("products: catalogue")]
+            INT[("interactions:<br/>Home / Shop / Rewards")]
+            REC[("recommender output")]
+            SIM[("simulation.sqlite<br/>baskets, quotes, orders")]
+            MEM[("companion.sqlite<br/>conversation, summary,<br/>session + long-term memory,<br/>audit log")]
+        end
+    end
+
+    BR["Amazon Bedrock<br/>Claude (primary), Nova (fallback)"]
+    TR["Amazon Transcribe<br/>streaming"]
+    PO["Amazon Polly<br/>neural voice"]
+
+    ID --> API
+    TXT --> API
+    MIC --> STT --> TR
+    TR --> STT --> API
+    API --> TTS --> PO
+    API --> CTX --> LOOP
+    LOOP <--> BR
+    LOOP --> DISC & MEMT & STARTER
+    LOOP --> GATE --> ORDER
+    UI -- "Confirm order" --> ORDER
+    DISC --> PROD & INT & REC & TRAIN
+    STARTER --> SIM
+    ORDER --> SIM
+    MEMT --> MEM
+    CTX --> MEM & TRAIN & INT & REC
+    API --> UI

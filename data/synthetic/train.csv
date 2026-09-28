@@ -1,0 +1,41 @@
+user_id;snapshot_date;region;age_band;household_size;membership_tier;device_type;device_os;tenure_months;monthly_budget;preferred_quality;language;marketing_opt_in;owned_items;declared_interests;relevant_items
+U000000;2026/04/01;west;35-49;5;basic;entry;ios;45;21.01;2.0;lang_c;1;I0012 I0016 I0022 I0042;;I0001
+U000001;2026/04/01;north;25-34;3;basic;entry;android;37;67.69;4.0;lang_c;0;;;I0003
+U000002;2026/04/01;east;50-64;5;silver;flagship;ios;61;331.15;1.0;lang_a;1;I0051 I0140 I0181;cooking;I0131 I0139 I0098
+U000003;2026/04/01;south;35-49;5;silver;mid;ios;37;353.78;2.0;lang_b;0;I0101 I0003 I0090 I0041;;I0040 I0141 I0017
+U000004;2026/04/01;north;65+;4;gold;mid;android;67;105.56;2.0;lang_b;1;I0223 I0089 I0112 I0168;fitness cooking;I0157 I0156 I0217
+U000005;2026/04/01;central;18-24;6;gold;mid;android;53;350.91;1.0;lang_b;1;I0210 I0214;;I0127 I0101 I0146
+U000006;2026/04/01;east;65+;5;basic;mid;ios;89;194.00;3.0;lang_b;1;I0106;family movies tech;I0165 I0082 I0001
+U000007;2026/04/01;south;65+;3;basic;mid;ios;75;108.14;3.0;lang_b;1;I0097 I0113 I0076;home;I0052 I0109 I0228
+U000008;2026/04/01;north;18-24;3;platinum;mid;ios;118;223.85;3.0;lang_c;1;;family movies tech;I0099 I0118 I0091
+U000009;2026/04/01;central;35-49;4;basic;flagship;android;68;107.12;4.0;lang_b;1;;family fitness cooking;I0107 I0124 I0102
+U000010;2026/04/01;central;35-49;6;platinum;flagship;android;22;157.83;3.0;lang_a;1;I0196 I0159 I0230;gaming;I0167 I0228 I0075
+U000011;2026/04/01;west;25-34;5;silver;flagship;android;65;359.39;4.0;lang_a;0;I0210 I0130;;I0090 I0145 I0161
+U000012;2026/04/01;coastal;50-64;1;basic;mid;android;118;135.69;1.0;lang_c;0;;;I0050 I0044 I0127
+U000013;2026/04/01;central;65+;2;platinum;entry;ios;78;66.17;2.0;lang_c;1;I0145 I0068 I0223 I0165;;I0007 I0025 I0019
+U000014;2026/04/01;west;50-64;5;gold;entry;android;88;312.82;3.0;lang_a;1;I0133;home;I0070 I0043 I0008
+U000015;2026/04/01;central;18-24;3;basic;mid;ios;3;40.78;4.0;lang_c;0;I0160 I0025;music cooking family;I0057 I0011 I0040
+U000016;2026/04/01;west;35-49;4;platinum;mid;ios;9;112.31;4.0;lang_c;1;I0218 I0044 I0080 I0001;tech;I0079 I0102 I0224
+U000017;2026/04/01;south;18-24;2;basic;mid;ios;24;22.90;3.0;lang_b;1;I0005 I0202 I0222;gaming home;I0136 I0223 I0098
+U000018;2026/04/01;north;18-24;4;silver;flagship;android;50;92.65;3.0;lang_b;0;I0103 I0166;music travel movies;I0087 I0206 I0039
+U000019;2026/04/01;south;18-24;2;silver;flagship;android;72;188.46;2.0;lang_a;1;I0180;cooking tech;I0096 I0161 I0148
+U000020;2026/04/01;west;65+;2;basic;mid;android;91;399.21;5.0;lang_b;1;I0076;family cooking;I0103 I0155 I0130
+U000021;2026/04/01;north;65+;1;platinum;mid;ios;4;269.86;5.0;lang_a;1;I0032;;I0099 I0181 I0022
+U000022;2026/04/01;south;35-49;2;basic;entry;ios;104;210.14;3.0;lang_a;0;I0198;gaming cooking;I0073 I0032 I0209
+U000023;2026/04/01;west;25-34;3;basic;entry;ios;87;323.77;3.0;lang_b;0;I0072 I0091 I0103;cooking tech home;I0231 I0160 I0025
+U000024;2026/04/01;north;35-49;5;basic;flagship;android;52;35.20;2.0;lang_b;0;I0074;fitness tech;I0189 I0010 I0141
+U000025;2026/04/01;south;65+;2;platinum;mid;ios;119;185.27;5.0;lang_b;0;I0161 I0163;;I0213 I0195 I0198
+U000026;2026/04/01;central;65+;6;basic;entry;android;5;320.75;2.0;lang_b;1;I0230 I0010;;I0106 I0177 I0190
+U000027;2026/04/01;south;35-49;5;basic;mid;ios;57;373.48;5.0;lang_c;1;I0191 I0157 I0212;family music cooking;I0109 I0172 I0131
+U000028;2026/04/01;south;18-24;6;platinum;mid;android;70;82.20;2.0;lang_c;1;I0125;music;I0043 I0091 I0088
+U000029;2026/04/01;east;25-34;2;gold;flagship;ios;31;288.14;1.0;lang_c;1;I0023 I0051 I0162;fitness home travel;I0034 I0226 I0181
+U000030;2026/04/01;central;25-34;3;basic;flagship;ios;98;377.66;2.0;lang_c;1;I0150;cooking gaming travel;I0003 I0092 I0124
+U000031;2026/04/01;north;35-49;3;basic;entry;ios;58;385.90;2.0;lang_b;1;I0011;movies home travel;I0043 I0142 I0018
+U000032;2026/04/01;north;50-64;4;basic;flagship;ios;95;234.19;1.0;lang_c;1;;beauty cooking home;I0002 I0091 I0023
+U000033;2026/04/01;coastal;35-49;6;basic;entry;android;96;30.51;4.0;lang_a;1;I0160 I0157;fitness family;I0216 I0229 I0174
+U000034;2026/04/01;coastal;35-49;6;platinum;mid;ios;24;265.98;3.0;lang_b;0;I0026;fitness family;I0094 I0214 I0212
+U000035;2026/04/01;north;18-24;5;gold;entry;android;64;180.73;2.0;lang_b;1;I0061 I0014;;I0036 I0176 I0058
+U000036;2026/04/01;west;50-64;1;basic;mid;ios;25;102.94;3.0;lang_a;0;I0035;fitness travel gaming;I0169 I0014 I0131
+U000037;2026/04/01;west;18-24;6;basic;flagship;android;49;132.38;4.0;lang_c;1;I0227 I0086 I0016;movies cooking;I0120 I0021 I0138
+U000038;2026/04/01;west;65+;6;basic;mid;android;104;327.68;3.0;lang_c;1;I0132 I0117;movies tech;I0094 I0123 I0168
+U000039;2026/04/01;east;65+;6;basic;entry;android;87;301.09;1.0;lang_a;1;I0076;family tech;I0092 I0135 I0061

@@ -1,0 +1,8 @@
+runtime/
+**/__pycache__/
+**/*.sqlite
+.git/
+.env
+tests/
+docs/
+deploy/.service-arn

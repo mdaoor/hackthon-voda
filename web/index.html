@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lifestyle Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;750&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<!-- Customer identification (replaces login for the simulation) -->
+<section id="entry" class="entry">
+  <div class="entry-inner">
+    <p class="brand-mark" aria-hidden="true"><span class="dot"></span> Lifestyle Companion</p>
+    <h1>Who's shopping today?</h1>
+    <p class="lede">Enter a customer ID to open their companion. It plans, recommends and checks out by text or voice.</p>
+    <form id="entry-form" autocomplete="off">
+      <label for="user-id">Customer ID</label>
+      <div class="entry-row">
+        <input id="user-id" name="user_id" placeholder="e.g. U000001" required maxlength="40" spellcheck="false">
+        <button type="submit" class="btn primary">Open companion</button>
+      </div>
+      <p id="entry-error" class="error" role="alert" hidden></p>
+    </form>
+    <div id="samples" class="samples" hidden>
+      <span>Demo IDs</span>
+      <div id="sample-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Companion -->
+<main id="app" class="app" hidden>
+  <header class="topbar">
+    <p class="brand-mark"><span class="dot"></span><span class="brand-name">Lifestyle Companion</span></p>
+    <div class="who">
+      <strong id="who-id"></strong>
+      <span id="who-meta"></span>
+    </div>
+    <div class="top-actions">
+      <button id="btn-new" class="btn ghost" title="Start a new conversation (keeps basket and long-term memory)">New chat</button>
+      <button id="btn-switch" class="btn ghost">Change customer</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="chat" aria-label="Conversation">
+      <div id="messages" class="messages" aria-live="polite"></div>
+      <div id="typing" class="typing" hidden><span></span><span></span><span></span> Working on it</div>
+
+      <form id="composer" class="composer" autocomplete="off">
+        <button type="button" id="btn-mic" class="mic" aria-label="Talk to the companion: tap to start, tap again to send">
+          <span class="mic-ring" id="mic-ring"></span>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+        </button>
+        <textarea id="input" rows="1" placeholder="Type a message or tap the mic" maxlength="2000"></textarea>
+        <button type="submit" class="btn primary send">Send</button>
+      </form>
+      <div class="composer-foot">
+        <label class="toggle"><input type="checkbox" id="speak-replies"> Read replies aloud</label>
+        <span id="voice-status" class="voice-status"></span>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Customer app">
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="home" aria-selected="true">Home</button>
+        <button role="tab" data-tab="shop">Shop</button>
+        <button role="tab" data-tab="rewards">Rewards</button>
+        <button role="tab" data-tab="basket">Basket <b id="basket-count">0</b></button>
+      </nav>
+      <div id="tab-home" class="tab" role="tabpanel"></div>
+      <div id="tab-shop" class="tab" role="tabpanel" hidden>
+        <form id="shop-form" class="shop-form">
+          <input id="shop-q" placeholder="Search products">
+          <select id="shop-cat"><option value="">All categories</option></select>
+          <input id="shop-max" type="number" min="0" step="1" placeholder="Max price">
+          <button class="btn">Search</button>
+        </form>
+        <div id="shop-results"></div>
+      </div>
+      <div id="tab-rewards" class="tab" role="tabpanel" hidden></div>
+      <div id="tab-basket" class="tab" role="tabpanel" hidden></div>
+    </aside>
+  </div>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
