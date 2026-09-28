@@ -6,7 +6,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STARTER_DIR = ROOT / "starter"
-# The starter package uses flat imports (`from store import Store`), keep it unmodified.
+# The supplied starter's internal modules use flat imports. Keep its directory
+# available for those internals while application code imports via `starter.*`.
 if str(STARTER_DIR) not in sys.path:
     sys.path.insert(0, str(STARTER_DIR))
 

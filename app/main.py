@@ -159,13 +159,17 @@ def checkout_cancel(body: StartIn):
 
 # ------------------------------------------------------------------ basket panel (direct UI edits via starter functions)
 def _basket_op(uid, name, args, note):
-    from tool_adapter import call_tool
+    from starter.tool_adapter import call_tool
     c = ctx()
-    res = call_tool(c.store, uid, name, args)
-    if res["ok"]:
-        c.agent.record_ui_event(uid, note, res["data"]["revision"])
-        c.memory.log(uid, "ui_basket", {"tool": name, "args": args})
-    return res
+    # Use the same per-customer lock as agent turns and checkout confirmation.
+    # This prevents a panel edit from racing between prepare_checkout and the
+    # session-memory update that records its basket revision.
+    with c.memory.lock(uid):
+        res = call_tool(c.store, uid, name, args)
+        if res["ok"]:
+            c.agent.record_ui_event(uid, note, res["data"]["revision"])
+            c.memory.log(uid, "ui_basket", {"tool": name, "args": args})
+        return res
 
 
 @app.get("/api/basket/{user_id}")

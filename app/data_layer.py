@@ -19,7 +19,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from store import ToolError, money  # starter package (added to sys.path by config)
+from starter.store import ToolError, money
 
 HIDDEN_PROFILE_FIELDS = {"relevant_items"}  # ML target labels - never shown to the model
 PRODUCT_ID_RE = re.compile(r"\bI\d{3,}\b")

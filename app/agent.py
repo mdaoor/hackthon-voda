@@ -30,7 +30,7 @@ def _ts():
 
 class AppContext:
     def __init__(self, config: Config, llm=None):
-        from store import Store  # starter
+        from starter.store import Store
 
         self.config = config
         self.store = Store(db_path=config.store_db, products_path=config.products_path,
@@ -97,8 +97,19 @@ class CompanionAgent:
             except Exception as exc:  # AI service problems must not lose the customer's state
                 log.exception("turn failed")
                 error = str(exc)[:300]
-                reply = ("I couldn't reach the AI service just now, so nothing new was changed by me. "
-                         "Your basket is saved - please try again in a moment.")
+                if st.actions:
+                    reply = ("I hit an AI service error after completing part of your request. "
+                             "Any successful actions shown below were kept, and your basket is saved. "
+                             "Please review them before trying again.")
+                else:
+                    reply = ("I couldn't reach the AI service just now, so I didn't perform any new actions. "
+                             "Your basket is saved - please try again in a moment.")
+                # Keep the attempted turn and any completed tool results in the
+                # model history. Dropping them would make later turns disagree
+                # with the persisted basket/session state.
+                messages.append({"role": "assistant", "content": [{"text": reply}]})
+                conv["messages"] = messages
+                conv["turn"] = turn
             ctx.memory.save_session(user_id, session)
             ctx.memory.save_long_term(user_id, long_term)
             entry = {"role": "assistant", "text": reply, "channel": channel, "ts": _ts(), "actions": st.actions,
@@ -139,13 +150,16 @@ class CompanionAgent:
 
     # ------------------------------------------------------------------ session start / greeting
     def start(self, user_id: str) -> dict:
-        conv = self.ctx.memory.load_conversation(user_id)
-        if not conv["transcript"]:
-            result = self.chat(user_id, GREETING_TRIGGER, channel="text", hidden=True)
-            if result.get("error"):
-                self._deterministic_greeting(user_id)
+        # Serialise initial greeting creation too. The lock is re-entrant
+        # because chat() protects the complete agent turn independently.
+        with self.ctx.memory.lock(user_id):
             conv = self.ctx.memory.load_conversation(user_id)
-        return conv
+            if not conv["transcript"]:
+                result = self.chat(user_id, GREETING_TRIGGER, channel="text", hidden=True)
+                if result.get("error"):
+                    self._deterministic_greeting(user_id)
+                conv = self.ctx.memory.load_conversation(user_id)
+            return conv
 
     def _deterministic_greeting(self, user_id):
         nudges = self.ctx.personalizer.proactive_nudges(user_id, self.ctx.insights(user_id))

@@ -34,7 +34,9 @@ def _now():
 class MemoryStore:
     def __init__(self, path):
         self.path = str(path)
-        self._locks: dict[str, threading.Lock] = {}
+        # RLock lets higher-level operations hold the customer lock while
+        # calling helpers that also protect themselves with the same lock.
+        self._locks: dict[str, threading.RLock] = {}
         self._guard = threading.Lock()
         with self._db() as db:
             db.executescript("""
@@ -57,9 +59,9 @@ class MemoryStore:
         finally:
             db.close()
 
-    def lock(self, user_id) -> threading.Lock:
+    def lock(self, user_id) -> threading.RLock:
         with self._guard:
-            return self._locks.setdefault(user_id, threading.Lock())
+            return self._locks.setdefault(user_id, threading.RLock())
 
     # ---------------- conversation
     def load_conversation(self, user_id):

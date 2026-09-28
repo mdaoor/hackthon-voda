@@ -16,11 +16,10 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-import order_tools  # starter
-from store import ToolError  # starter
-from tool_adapter import call_tool  # starter
-
 from .config import STARTER_DIR
+from starter import order_tools
+from starter.store import ToolError
+from starter.tool_adapter import call_tool
 
 STARTER_TOOLS = {"get_basket", "add_to_basket", "update_basket", "remove_from_basket", "prepare_checkout", "get_order"}
 BASKET_MUTATIONS = {"add_to_basket", "update_basket", "remove_from_basket"}

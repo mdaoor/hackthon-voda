@@ -206,6 +206,27 @@ def test_compaction_keeps_valid_history(ctx, monkeypatch):
     assert first["role"] == "user" and "text" in first["content"][0]
 
 
+def test_failure_after_successful_tool_reports_and_remembers_side_effect(ctx):
+    """A later model failure must not claim an earlier basket mutation vanished."""
+    item = _eligible_non_subscription(ctx, 1)[0]
+
+    def model_failure(_results):
+        raise RuntimeError("temporary Bedrock failure")
+
+    ctx.llm.queue([("add_to_basket", {"product_id": item})], model_failure)
+    out = ctx.agent.chat(UID, "add it")
+
+    assert out["error"] == "temporary Bedrock failure"
+    assert out["actions"][0]["ok"]
+    assert "successful actions" in out["text"]
+    assert ctx.store.get_basket(UID)["items"][0]["product_id"] == item
+
+    conv = ctx.memory.load_conversation(UID)
+    assert conv["turn"] == 1
+    assert conv["messages"][-1]["role"] == "assistant"
+    assert "AI service error" in conv["messages"][-1]["content"][0]["text"]
+
+
 # ---------------------------------------------------------------- API
 def test_api_invalid_user_and_flow(ctx):
     from fastapi.testclient import TestClient
