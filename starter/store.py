@@ -20,7 +20,7 @@ def money(value):
 
 def read_csv(path, key):
     with open(path, encoding='utf-8-sig', newline='') as f:
-        rows = list(csv.DictReader(f, delimiter=';'))
+        rows = list(csv.DictReader(f, delimiter=','))
     if not rows or key not in rows[0]:
         raise ValueError(f'{path}: expected nonempty semicolon-delimited CSV with {key}')
     result = {}
@@ -33,10 +33,18 @@ def read_csv(path, key):
 
 class Store:
     def __init__(self, db_path=ROOT/'simulation.sqlite', products_path=ROOT/'data/products.csv',
-                 customers_path=ROOT/'data/customers.csv', demo_date='2026-04-01', currency='DEMO_UNITS'):
+                 customers_path=ROOT/'data/customers.csv', demo_date='2026-04-01', currency='DEMO_UNITS',
+                 additional_customers_paths=()):
         self.db_path = str(db_path)
         self.products = read_csv(products_path, 'product_id')
         self.customers = read_csv(customers_path, 'user_id')
+        for path in additional_customers_paths:
+            extra = read_csv(path, 'user_id')
+            duplicates = self.customers.keys() & extra.keys()
+            if duplicates:
+                sample = ', '.join(sorted(duplicates)[:3])
+                raise ValueError(f'{path}: duplicate user_id also present in {customers_path}: {sample}')
+            self.customers.update(extra)
         self.demo_date = date.fromisoformat(demo_date)
         self.currency = currency
         with self.transaction() as db:

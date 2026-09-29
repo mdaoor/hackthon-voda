@@ -9,7 +9,7 @@
 # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN values.
 # Never store credentials in this file.
 
-$Env:APP_NAME = "lifestyle-companion-v1"
+$Env:APP_NAME = "lifestyle-companion-v2"
 $Env:AWS_REGION = "us-east-1"
 $Env:AWS_DEFAULT_REGION = "us-east-1"
 

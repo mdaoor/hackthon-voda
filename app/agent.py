@@ -35,7 +35,9 @@ class AppContext:
 
         self.config = config
         self.store = Store(db_path=config.store_db, products_path=config.products_path,
-                           customers_path=config.customers_path, demo_date=config.demo_date, currency=config.currency)
+                           customers_path=config.customers_path,
+                           additional_customers_paths=config.additional_customers_paths,
+                           demo_date=config.demo_date, currency=config.currency)
         self.catalogue = Catalogue(self.store)
         self.profiles = Profiles(self.store)
         self.interactions = Interactions(config.interactions_path, self.catalogue)
@@ -65,8 +67,11 @@ class AppContext:
                 "recommender_source": self.recommender.source,
                 "recommender_users": len({key[0] for key in self.recommender.ranked}),
                 "recommender": self.recommender.status(),
-                "files": {k: str(getattr(self.config, k)) for k in
-                          ("products_path", "customers_path", "interactions_path", "recommendation_model_path")}}
+                "files": {"products_path": str(self.config.products_path),
+                          "customers_paths": [str(self.config.customers_path),
+                                              *(str(p) for p in self.config.additional_customers_paths)],
+                          "interactions_path": str(self.config.interactions_path),
+                          "recommendation_model_path": str(self.config.recommendation_model_path)}}
 
 
 class CompanionAgent:

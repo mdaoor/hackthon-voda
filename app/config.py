@@ -31,6 +31,7 @@ class Config:
     data_dir: Path = field(default_factory=lambda: Path(_env("DATA_DIR", ROOT / "data" / "synthetic")))
     products_path: Path | None = None
     customers_path: Path | None = None
+    additional_customers_paths: tuple[Path, ...] = field(default_factory=tuple)
     interactions_path: Path | None = None
     recommendation_model_path: Path | None = None
     runtime_dir: Path = field(default_factory=lambda: Path(_env("RUNTIME_DIR", ROOT / "runtime")))
@@ -72,7 +73,21 @@ class Config:
         self.transcribe_language = self.transcribe_language or self.transcribe_languages[0]
         d = self.data_dir
         self.products_path = Path(_env("PRODUCTS_PATH")) if _env("PRODUCTS_PATH") else _find(d, "products")
-        self.customers_path = Path(_env("CUSTOMERS_PATH")) if _env("CUSTOMERS_PATH") else _find(d, "train", "customers")
+        configured_customers = _env("CUSTOMERS_PATH")
+        if configured_customers:
+            self.customers_path = Path(configured_customers)
+            self.additional_customers_paths = ()
+        else:
+            # Training profiles and the challenge customer/test profiles are
+            # both valid demo users. Keep train first for backward-compatible
+            # sample IDs, then merge the remaining profile files at startup.
+            customer_files = []
+            for stem in ("train", "customers", "test"):
+                path = _find(d, stem)
+                if path and path not in customer_files:
+                    customer_files.append(path)
+            self.customers_path = customer_files[0] if customer_files else None
+            self.additional_customers_paths = tuple(customer_files[1:])
         self.interactions_path = Path(_env("INTERACTIONS_PATH")) if _env("INTERACTIONS_PATH") else _find(d, "interactions")
         self.recommendation_model_path = (Path(_env("RECOMMENDATION_MODEL_PATH"))
                                           if _env("RECOMMENDATION_MODEL_PATH")
