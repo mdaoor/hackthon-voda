@@ -26,11 +26,32 @@ NEGATE = re.compile(
     re.I,
 )
 
+ARABIC_DIACRITICS = re.compile(r"[\u064b-\u065f\u0670\u06d6-\u06ed]")
+ARABIC_AFFIRM = re.compile(
+    r"(?:^|\s)(?:نعم|ايوه|ايوا|اه|تمام|موافق|اوافق|اكد(?:\s+(?:الطلب|الشراء))?|"
+    r"تاكيد(?:\s+(?:الطلب|الشراء))?|نفذ(?:\s+الطلب)?|اطلبه|اطلبهم)(?:\s|$)"
+)
+ARABIC_REJECT = re.compile(
+    r"(?:^|\s)(?:لا|لأ|مش|مو|انتظر|استنى|توقف|الغي|الغاء|احذف|شيل|غير|بدل|استبدل|"
+    r"اضف|زود|قبل|لكن|بس|الا|بدون|من غير|لو|اذا|ارخص|اغلى|اكثر|اقل|كام|كم|هل|"
+    r"ليه|لماذا|ازاي|كيف|ايه|ما هو|ما هي|فين|اين|امتى|متى)(?:\s|$)|[؟?]"
+)
+
+
+def _normalise_arabic(text: str) -> str:
+    text = ARABIC_DIACRITICS.sub("", text)
+    text = text.translate(str.maketrans("أإآٱؤئىة", "ااااوييه"))
+    text = re.sub(r"ـ+", "", text)
+    text = re.sub(r"[^\w\s؟?']", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
 
 def is_explicit_confirmation(text: str) -> bool:
     if not text:
         return False
-    t = text.strip().lower()
+    t = _normalise_arabic(text.strip().lower())
     if len(t.split()) > 20:
         return False
-    return bool(AFFIRM.search(t)) and not NEGATE.search(t)
+    affirmed = bool(AFFIRM.search(t) or ARABIC_AFFIRM.search(t))
+    rejected = bool(NEGATE.search(t) or ARABIC_REJECT.search(t))
+    return affirmed and not rejected

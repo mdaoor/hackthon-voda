@@ -1,5 +1,6 @@
 /* Lifestyle Companion - vanilla JS client (no build step). */
-const S = { user: null, cfg: null, pendingCheckout: null, busy: false, sttMode: "transcribe", categoriesLoaded: false };
+const S = { user: null, cfg: null, pendingCheckout: null, busy: false, sttMode: "transcribe",
+  voiceLanguage: "auto", lastDetectedLanguage: null, categoriesLoaded: false };
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const cur = () => (S.cfg?.currency === "DEMO_UNITS" ? "" : " " + (S.cfg?.currency || ""));
@@ -31,6 +32,16 @@ function md(text) {
 async function boot() {
   S.cfg = await api("/api/config");
   S.sttMode = S.cfg.stt;
+  const configured = new Set(S.cfg.configured_voice_languages || []);
+  ["en-US", "ar-SA"].forEach((code) => {
+    const option = $(`#voice-language option[value="${code}"]`);
+    option.disabled = configured.size > 0 && !configured.has(code);
+  });
+  if (!S.cfg.voice_auto_detection) {
+    $("#voice-language option[value=auto]").disabled = true;
+    S.voiceLanguage = S.cfg.configured_voice_languages?.[0] || "en-US";
+    $("#voice-language").value = S.voiceLanguage;
+  }
   if (S.cfg.sample_ids?.length) {
     $("#samples").hidden = false;
     $("#sample-list").innerHTML = S.cfg.sample_ids.map((id) => `<button type="button" data-id="${esc(id)}">${esc(id)}</button>`).join("");
@@ -103,12 +114,16 @@ async function send(text, channel) {
   renderEntry({ role: "user", text, channel });
   setBusy(true);
   try {
-    const r = await post("/api/chat", { user_id: S.user, message: text, channel });
+    const voiceMeta = channel === "voice" ? {
+      voice_language: S.lastDetectedLanguage || (S.voiceLanguage === "auto" ? null : S.voiceLanguage),
+      voice_languages: S.lastDetectedLanguage ? [S.lastDetectedLanguage] : []
+    } : {};
+    const r = await post("/api/chat", { user_id: S.user, message: text, channel, ...voiceMeta });
     S.pendingCheckout = r.pending_checkout;
     renderEntry(r);
     renderBasket(r.basket);
     refreshPanel();
-    if (channel === "voice" || $("#speak-replies").checked) speak(r.text);
+    if (channel === "voice" || $("#speak-replies").checked) speak(r.text, r.language);
   } catch (e) {
     renderEntry({ role: "assistant", text: `Something went wrong: ${e.message}. Please try again.`, error: true });
   } finally { setBusy(false); }
@@ -124,13 +139,14 @@ const scrollDown = () => requestAnimationFrame(() => { const m = $("#messages");
 
 function renderEntry(e) {
   const el = document.createElement("div");
+  el.dir = "auto";
   if (e.role === "user") {
     el.className = "msg user";
     const via = e.channel === "voice" ? "Spoken" : e.channel === "ui" ? "Button" : "";
     el.innerHTML = `${esc(e.text)}${via ? `<span class="via">${via}</span>` : ""}`;
   } else {
     el.className = "msg assistant" + (e.error ? " error-msg" : "");
-    let html = `<div class="text">${md(e.text || "")}</div>`;
+    let html = `<div class="text" dir="auto">${md(e.text || "")}</div>`;
     (e.cards || []).forEach((c) => { html += optionsHtml(c); });
     if (e.checkout) html += checkoutHtml(e.checkout);
     if (e.order) html += orderHtml(e.order);
@@ -312,6 +328,12 @@ $("#tab-basket").addEventListener("click", async (e) => {
 const V = { rec: false, stream: null, ac: null, proc: null, src: null, chunks: [], timer: null, audio: null, recog: null };
 const status = (t) => { $("#voice-status").textContent = t || ""; };
 
+$("#voice-language").onchange = (e) => {
+  S.voiceLanguage = e.target.value;
+  if (S.voiceLanguage !== "auto") S.lastDetectedLanguage = S.voiceLanguage;
+  status("");
+};
+
 $("#btn-mic").onclick = () => {
   if (S.busy && !V.rec) return;
   if (S.sttMode === "browser") return browserRecognition();
@@ -349,11 +371,13 @@ async function stopRecording() {
   const pcm = toPcm16(V.chunks, rate, 16000);
   status("Transcribing…");
   try {
-    const res = await fetch(`/api/voice/transcribe?user_id=${encodeURIComponent(S.user)}&rate=16000`, { method: "POST", body: pcm, headers: { "Content-Type": "application/octet-stream" } });
+    const selected = S.voiceLanguage;
+    const res = await fetch(`/api/voice/transcribe?user_id=${encodeURIComponent(S.user)}&rate=16000&language=${encodeURIComponent(selected)}`, { method: "POST", body: pcm, headers: { "Content-Type": "application/octet-stream" } });
     const j = await res.json();
     if (!j.ok) throw new Error(j.error);
     status("");
-    if (j.text) send(j.text, "voice"); else status("I didn't catch that. Tap the mic and try again.");
+    if (j.language) S.lastDetectedLanguage = j.language;
+    if (j.text) sendVoice(j.text, j.language, j.languages); else status("I didn't catch that. Tap the mic and try again.");
   } catch (e) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SR) { S.sttMode = "browser"; status("Server speech recognition is unavailable; switched to the browser's. Tap the mic again."); }
@@ -379,23 +403,44 @@ function browserRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { status("This browser has no speech recognition. Use Chrome or Edge, or type instead."); return; }
   if (V.recog) { V.recog.stop(); return; }
+  const chosen = S.voiceLanguage === "auto" ? S.lastDetectedLanguage : S.voiceLanguage;
+  if (!chosen) {
+    status("Choose English or العربية once before using browser speech recognition.");
+    return;
+  }
   stopSpeaking();
   const r = new SR(); V.recog = r;
-  r.lang = "en-US"; r.interimResults = false; r.maxAlternatives = 1;
+  r.lang = chosen; r.interimResults = false; r.maxAlternatives = 1;
   $("#btn-mic").classList.add("recording"); status("Listening…");
-  r.onresult = (e) => { const t = e.results[0][0].transcript; if (t) send(t, "voice"); };
+  r.onresult = (e) => { const t = e.results[0][0].transcript; if (t) sendVoice(t, chosen, [chosen]); };
   r.onerror = (e) => status(`Voice error: ${e.error}`);
   r.onend = () => { V.recog = null; $("#btn-mic").classList.remove("recording"); if ($("#voice-status").textContent === "Listening…") status(""); };
   r.start();
 }
 
 /* ------------------------------------------------------------------ voice: Amazon Polly playback */
-async function speak(text) {
+async function sendVoice(text, language, languages = []) {
+  S.lastDetectedLanguage = language || S.lastDetectedLanguage;
+  stopSpeaking();
+  renderEntry({ role: "user", text, channel: "voice", language, languages });
+  setBusy(true);
+  try {
+    const r = await post("/api/chat", { user_id: S.user, message: text, channel: "voice",
+      voice_language: language || null, voice_languages: languages });
+    S.pendingCheckout = r.pending_checkout;
+    renderEntry(r); renderBasket(r.basket); refreshPanel();
+    speak(r.text, r.language);
+  } catch (e) {
+    renderEntry({ role: "assistant", text: `Something went wrong: ${e.message}. Please try again.`, error: true });
+  } finally { setBusy(false); }
+}
+
+async function speak(text, language) {
   if (!text) return;
   stopSpeaking();
   if (S.cfg.tts !== "browser") {
     try {
-      const blob = await api("/api/voice/speak", { method: "POST", body: JSON.stringify({ text }) });
+      const blob = await api("/api/voice/speak", { method: "POST", body: JSON.stringify({ text, language }) });
       V.audio = new Audio(URL.createObjectURL(blob));
       await V.audio.play();
       return;
@@ -403,6 +448,11 @@ async function speak(text) {
   }
   if ("speechSynthesis" in window) {
     const u = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, "").slice(0, 900));
+    u.lang = language || (/[؀-ۿ]/.test(text) ? "ar-SA" : "en-US");
+    const voices = speechSynthesis.getVoices();
+    const prefix = u.lang.slice(0, 2).toLowerCase();
+    u.voice = voices.find((v) => v.lang.toLowerCase() === u.lang.toLowerCase()) ||
+      voices.find((v) => v.lang.toLowerCase().startsWith(prefix)) || null;
     speechSynthesis.speak(u);
   }
 }

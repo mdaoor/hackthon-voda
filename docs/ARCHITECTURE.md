@@ -32,7 +32,7 @@ flowchart LR
             TRAIN[("train: profiles<br/>relevant_items removed")]
             PROD[("products: catalogue")]
             INT[("interactions:<br/>Home / Shop / Rewards")]
-            REC[("recommender output")]
+            REC[("trusted pickle model")]
             SIM[("simulation.sqlite<br/>baskets, quotes, orders")]
             MEM[("companion.sqlite<br/>conversation, summary,<br/>session + long-term memory,<br/>audit log")]
         end

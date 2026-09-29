@@ -51,15 +51,22 @@
       <div id="messages" class="messages" aria-live="polite"></div>
       <div id="typing" class="typing" hidden><span></span><span></span><span></span> Working on it</div>
 
-      <form id="composer" class="composer" autocomplete="off">
+      <form id="composer" class="composer" autocomplete="off" dir="auto">
         <button type="button" id="btn-mic" class="mic" aria-label="Talk to the companion: tap to start, tap again to send">
           <span class="mic-ring" id="mic-ring"></span>
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
         </button>
-        <textarea id="input" rows="1" placeholder="Type a message or tap the mic" maxlength="2000"></textarea>
+        <textarea id="input" rows="1" placeholder="Type a message or tap the mic" maxlength="2000" dir="auto"></textarea>
         <button type="submit" class="btn primary send">Send</button>
       </form>
       <div class="composer-foot">
+        <label class="voice-language">Voice language
+          <select id="voice-language" aria-label="Voice language">
+            <option value="auto">Auto</option>
+            <option value="en-US">English</option>
+            <option value="ar-SA">العربية</option>
+          </select>
+        </label>
         <label class="toggle"><input type="checkbox" id="speak-replies"> Read replies aloud</label>
         <span id="voice-status" class="voice-status"></span>
       </div>

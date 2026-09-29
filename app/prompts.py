@@ -61,7 +61,8 @@ def _j(obj):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
-def build_system(ctx, user_id, session, long_term, summary, channel, basket, turn_hint=None):
+def build_system(ctx, user_id, session, long_term, summary, channel, basket, turn_hint=None,
+                 voice_language=None, voice_languages=None):
     prof = ctx.profiles.get(user_id)
     owned = (prof.get("owned_items") or "").split()
     owned_named = [f"{ctx.catalogue.products[o]['product_name']}" for o in owned if o in ctx.catalogue.products]
@@ -104,6 +105,15 @@ def build_system(ctx, user_id, session, long_term, summary, channel, basket, tur
     if summary:
         ctx_blocks.append(f"# EARLIER IN THIS CONVERSATION (summary)\n{summary}")
     ctx_blocks.append(f"# CHANNEL\nThe customer's latest message came via {channel.upper()}.")
+    if channel == "voice" and voice_language:
+        detected = voice_languages or [voice_language]
+        ctx_blocks.append(
+            "# VOICE LANGUAGE\n"
+            f"Dominant input language: {voice_language}. Languages detected, in order: {_j(detected)}. "
+            "Answer in the dominant input language. Natural Arabic/English code-switching and English product or "
+            "brand names are allowed. Use clear Modern Standard Arabic for an Arabic reply while understanding "
+            "common Egyptian Arabic phrasing."
+        )
     if turn_hint:
         ctx_blocks.append(f"# NOTE\n{turn_hint}")
     return rules + "\n\n" + "\n\n".join(ctx_blocks)

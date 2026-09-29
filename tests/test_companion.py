@@ -68,6 +68,20 @@ def phone_under(ctx, uid, budget):
     return ctx.personalizer.search(uid, category="smartphone", max_price=budget, limit=10)["results"]
 
 
+def test_voice_config_defaults_and_legacy_single_language(monkeypatch):
+    monkeypatch.delenv("TRANSCRIBE_LANGUAGES", raising=False)
+    monkeypatch.delenv("TRANSCRIBE_LANGUAGE", raising=False)
+    monkeypatch.delenv("POLLY_VOICE_ID", raising=False)
+    assert Config().transcribe_languages == ("en-US", "ar-SA")
+    assert Config().polly_voice == "Hala"
+
+    monkeypatch.setenv("TRANSCRIBE_LANGUAGE", "ar-SA")
+    assert Config().transcribe_languages == ("ar-SA",)
+
+    monkeypatch.setenv("TRANSCRIBE_LANGUAGES", "en-US,ar-SA,en-US")
+    assert Config().transcribe_languages == ("en-US", "ar-SA")
+
+
 # ---------------------------------------------------------------- data layer
 def test_ml_labels_hidden(ctx):
     assert "relevant_items" in ctx.store.customers[UID]  # present in raw train data
@@ -213,11 +227,33 @@ def test_ui_confirm_button(ctx):
 
 
 def test_confirmation_classifier():
-    yes = ["Yes, place the order.", "yes", "Confirm", "ok go ahead", "Yes please place my order", "sounds good"]
+    yes = ["Yes, place the order.", "yes", "Confirm", "ok go ahead", "Yes please place my order", "sounds good",
+           "that's fine", "let's do it"]
     no = ["Remove that item before placing the order.", "yes but remove the charger", "no", "wait",
           "is that the total?", "Yes, add the case too", "place the order without the speaker", "what's the total"]
     assert all(is_explicit_confirmation(t) for t in yes), [t for t in yes if not is_explicit_confirmation(t)]
     assert not any(is_explicit_confirmation(t) for t in no), [t for t in no if is_explicit_confirmation(t)]
+
+
+def test_arabic_confirmation_classifier():
+    yes = ["نعم", "أيوه", "ايوه.", "أكد الطلب", "تأكيد الشراء", "تمام، نفذ الطلب"]
+    no = ["لا", "أيوه بس شيل الشاحن", "نعم، لكن غير الهاتف", "أكد الطلب بدون السماعة",
+          "هل أؤكد الطلب؟", "كام الإجمالي؟", "أيوه؟", "تمام لو السعر أقل"]
+    assert all(is_explicit_confirmation(t) for t in yes), [t for t in yes if not is_explicit_confirmation(t)]
+    assert not any(is_explicit_confirmation(t) for t in no), [t for t in no if is_explicit_confirmation(t)]
+
+
+def test_voice_language_metadata_guides_prompt_and_response(ctx):
+    ctx.llm.queue("إليك هاتف مناسب.")
+    out = ctx.agent.chat(UID, "عايز smartphone under 100", channel="voice",
+                         voice_language="ar-SA", voice_languages=["ar-SA", "en-US"])
+    system = ctx.llm.calls[-1]["system"]
+    assert "Dominant input language: ar-SA" in system
+    assert '"ar-SA","en-US"' in system
+    assert out["language"] == "ar-SA"
+    transcript = ctx.memory.load_conversation(UID)["transcript"]
+    assert transcript[-2]["language"] == "ar-SA"
+    assert transcript[-2]["languages"] == ["ar-SA", "en-US"]
 
 
 def test_subscription_blocked_with_hint(ctx):
@@ -280,3 +316,33 @@ def test_api_invalid_user_and_flow(ctx):
     r = client.post("/api/chat", json={"user_id": UID, "message": "hello", "channel": "voice"})
     assert r.json()["channel"] == "voice"
     assert "VOICE" in ctx.llm.calls[-1]["system"]
+    cfg = client.get("/api/config").json()
+    assert {x["code"] for x in cfg["voice_languages"]} == {"en-US", "ar-SA"}
+    assert client.post("/api/chat", json={"user_id": UID, "message": "hi", "channel": "voice",
+                                           "voice_language": "fr-FR"}).status_code == 422
+    assert client.post("/api/voice/speak", json={"text": "hi", "language": "fr-FR"}).status_code == 422
+
+
+def test_voice_api_provider_failures_offer_browser_fallback(ctx, monkeypatch):
+    from fastapi.testclient import TestClient
+    import app.main as main
+    from app.voice import Voice
+
+    main.CTX = ctx
+    main.VOICE = Voice(ctx.config)
+    client = TestClient(main.app)
+
+    async def fail_transcribe(*_args, **_kwargs):
+        raise RuntimeError("transcribe unavailable")
+
+    def fail_speak(*_args, **_kwargs):
+        raise RuntimeError("polly unavailable")
+
+    monkeypatch.setattr(main.VOICE, "transcribe", fail_transcribe)
+    r = client.post(f"/api/voice/transcribe?user_id={UID}&language=en-US",
+                    content=b"\x00" * 4000, headers={"Content-Type": "application/octet-stream"})
+    assert r.status_code == 502 and r.json()["fallback"] == "browser"
+
+    monkeypatch.setattr(main.VOICE, "speak", fail_speak)
+    r = client.post("/api/voice/speak", json={"text": "مرحبا", "language": "ar-SA"})
+    assert r.status_code == 502 and r.json()["fallback"] == "browser" and r.json()["language"] == "ar-SA"

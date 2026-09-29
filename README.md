@@ -80,6 +80,8 @@ All settings are environment variables; see `.env.example`. The most important:
 | `BEDROCK_MODEL_ID` | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` | Use a profile available in your region |
 | `BEDROCK_FALLBACK_MODEL_ID` | `us.amazon.nova-pro-v1:0` | Used automatically if the primary is unavailable |
 | `STT_PROVIDER` / `TTS_PROVIDER` | `auto` / `polly` | `browser` for either forces the browser's speech features |
+| `TRANSCRIBE_LANGUAGES` | `en-US,ar-SA` | Automatic Transcribe languages; `TRANSCRIBE_LANGUAGE` remains available for legacy single-language deployments |
+| `POLLY_VOICE_ID` / `POLLY_ENGINE` | `Hala` / `neural` | Bilingual Arabic/English speech, including mixed replies |
 | `DEMO_DATE` | `2026-04-01` | Availability date used by the starter |
 | `SHOW_SAMPLE_IDS` | `true` | Shows clickable demo IDs on the first page |
 

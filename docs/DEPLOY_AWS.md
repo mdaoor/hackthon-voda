@@ -19,6 +19,10 @@ pip install boto3 amazon-transcribe
 python scripts/check_bedrock.py
 ```
 
+Voice defaults are `TRANSCRIBE_LANGUAGES=en-US,ar-SA`, `POLLY_VOICE_ID=Hala`, and
+`POLLY_ENGINE=neural`. Auto mode identifies both languages per recording. Set the
+legacy `TRANSCRIBE_LANGUAGE=en-US` by itself for a fixed single-language deployment.
+
 The script lists the Claude and Nova inference profiles you can use and test-calls the configured primary and fallback models with a tool definition. It also checks Polly and Transcribe. If the default model fails, pick a working ID from the list:
 
 ```bash

@@ -110,6 +110,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .composer textarea:focus { border-color: var(--ink); outline: none; }
 .composer .send { padding: 11px 18px; border-radius: var(--radius-m); }
 .composer-foot { display: flex; justify-content: space-between; gap: 12px; padding: 4px clamp(16px, 4vw, 48px) 12px; font-size: 13px; color: var(--graphite); }
+.voice-language { display: flex; gap: 6px; align-items: center; }
+.voice-language select { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); padding: 3px 6px; }
 .toggle { display: flex; gap: 6px; align-items: center; cursor: pointer; }
 .voice-status { text-align: right; }
 

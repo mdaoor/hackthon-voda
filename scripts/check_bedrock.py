@@ -46,7 +46,7 @@ for m in models:
 
 try:
     boto3.client("polly", region_name=region).synthesize_speech(Text="Hello", OutputFormat="mp3",
-                                                                VoiceId=os.getenv("POLLY_VOICE_ID", "Joanna"),
+                                                                VoiceId=os.getenv("POLLY_VOICE_ID", "Hala"),
                                                                 Engine=os.getenv("POLLY_ENGINE", "neural"))
     print("[OK]   Polly")
 except Exception as e:
@@ -58,8 +58,8 @@ try:
     from app.config import Config
     from app.voice import Voice
     os.environ["AWS_REGION"] = region
-    text = asyncio.run(Voice(Config()).transcribe(b"\x00\x00" * 16000))
-    print(f"[OK]   Transcribe streaming (silence -> {text!r})")
+    result = asyncio.run(Voice(Config()).transcribe(b"\x00\x00" * 16000, language="auto"))
+    print(f"[OK]   Transcribe streaming auto en-US/ar-SA (silence -> {result!r})")
 except Exception as e:
     print("[FAIL] Transcribe streaming:", e, "(the UI falls back to browser speech recognition)")
 

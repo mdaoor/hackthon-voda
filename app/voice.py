@@ -8,8 +8,10 @@ text share one conversation, one memory and one basket.
 from __future__ import annotations
 
 import asyncio
+from collections import Counter
 import logging
 import re
+import time
 
 import boto3
 
@@ -24,16 +26,42 @@ except Exception:  # package missing -> browser speech recognition fallback
     TRANSCRIBE_AVAILABLE = False
 
 
+SUPPORTED_LANGUAGES = ("en-US", "ar-SA")
+ARABIC_RE = re.compile(r"[\u0600-\u06ff]")
+
+
+def text_language(text: str) -> str:
+    """Classify reply text for UI/TTS routing; mixed text follows its dominant script."""
+    letters = [ch for ch in (text or "") if ch.isalpha()]
+    if letters and sum(bool(ARABIC_RE.match(ch)) for ch in letters) >= len(letters) / 2:
+        return "ar-SA"
+    return "en-US"
+
+
+def dominant_language(parts: list[tuple[str, str]], fallback: str | None = None):
+    weights = Counter()
+    ordered = []
+    for transcript, language in parts:
+        if not language:
+            continue
+        if language not in ordered:
+            ordered.append(language)
+        weights[language] += max(1, len(transcript.strip()))
+    return (weights.most_common(1)[0][0] if weights else fallback), ordered
+
+
 if TRANSCRIBE_AVAILABLE:
     class _Collector(TranscriptResultStreamHandler):
         def __init__(self, stream):
             super().__init__(stream)
-            self.parts = []
+            self.parts: list[tuple[str, str | None]] = []
 
         async def handle_transcript_event(self, transcript_event: TranscriptEvent):
             for result in transcript_event.transcript.results:
                 if not result.is_partial and result.alternatives:
-                    self.parts.append(result.alternatives[0].transcript)
+                    alternative = result.alternatives[0]
+                    language = getattr(result, "language_code", None) or getattr(alternative, "language_code", None)
+                    self.parts.append((alternative.transcript, language))
 
 
 class Voice:
@@ -47,14 +75,42 @@ class Voice:
             return "browser"
         return "transcribe" if TRANSCRIBE_AVAILABLE else "browser"
 
-    async def transcribe(self, pcm: bytes, sample_rate: int = 16000) -> str:
+    @property
+    def languages(self):
+        return tuple(self.config.transcribe_languages)
+
+    @property
+    def auto_language_available(self):
+        return self.stt_mode == "transcribe" and len(self.languages) >= 2
+
+    def validate_language(self, language: str) -> str:
+        if language == "auto":
+            if not self.auto_language_available:
+                raise ValueError("Automatic language detection requires Amazon Transcribe and at least two configured languages.")
+            return language
+        if language not in self.languages or language not in SUPPORTED_LANGUAGES:
+            raise ValueError(f"Unsupported voice language '{language}'. Choose one of: auto, {', '.join(self.languages)}.")
+        return language
+
+    def transcribe_parameters(self, language: str, sample_rate: int) -> dict:
+        self.validate_language(language)
+        base = {"media_sample_rate_hz": sample_rate, "media_encoding": "pcm"}
+        if language == "auto":
+            # The streaming SDK keeps language_code as a required keyword even
+            # when AWS language identification is enabled.
+            return {**base, "language_code": None, "identify_multiple_languages": True,
+                    "language_options": list(self.languages)}
+        return {**base, "language_code": language}
+
+    async def transcribe(self, pcm: bytes, sample_rate: int = 16000, language: str = "auto") -> dict:
         if not TRANSCRIBE_AVAILABLE:
             raise RuntimeError("amazon-transcribe is not installed")
+        self.validate_language(language)
         if len(pcm) < sample_rate // 5:  # < 0.1 s of audio
-            return ""
+            return {"text": "", "language": None, "languages": []}
+        started = time.perf_counter()
         client = TranscribeStreamingClient(region=self.config.aws_region)
-        stream = await client.start_stream_transcription(
-            language_code=self.config.transcribe_language, media_sample_rate_hz=sample_rate, media_encoding="pcm")
+        stream = await client.start_stream_transcription(**self.transcribe_parameters(language, sample_rate))
         handler = _Collector(stream.output_stream)
         chunk = 8192  # ~0.25 s at 16 kHz / 16-bit
 
@@ -65,7 +121,13 @@ class Voice:
             await stream.input_stream.end_stream()
 
         await asyncio.wait_for(asyncio.gather(send(), handler.handle_events()), timeout=45)
-        return " ".join(p.strip() for p in handler.parts if p.strip())
+        populated = [(text.strip(), code) for text, code in handler.parts if text.strip()]
+        detected, languages = dominant_language(populated, None if language == "auto" else language)
+        if populated and detected and not languages:
+            languages = [detected]
+        log.info("voice stt provider=transcribe selected=%s detected=%s languages=%s latency_ms=%d",
+                 language, detected, languages, round((time.perf_counter() - started) * 1000))
+        return {"text": " ".join(text for text, _ in populated), "language": detected, "languages": languages}
 
     @property
     def polly(self):
@@ -73,15 +135,17 @@ class Voice:
             self._polly = boto3.client("polly", region_name=self.config.aws_region)
         return self._polly
 
-    def speak(self, text: str) -> bytes:
+    def speak(self, text: str, language: str | None = None) -> bytes:
         clean = speakable(text)
-        try:
-            r = self.polly.synthesize_speech(Text=clean, OutputFormat="mp3", VoiceId=self.config.polly_voice,
-                                             Engine=self.config.polly_engine)
-        except Exception as exc:
-            log.warning("Polly %s engine failed (%s); retrying with standard", self.config.polly_engine, exc)
-            r = self.polly.synthesize_speech(Text=clean, OutputFormat="mp3", VoiceId=self.config.polly_voice,
-                                             Engine="standard")
+        selected = language or text_language(clean)
+        if selected not in SUPPORTED_LANGUAGES:
+            raise ValueError(f"Unsupported voice language '{selected}'.")
+        started = time.perf_counter()
+        r = self.polly.synthesize_speech(Text=clean, OutputFormat="mp3", VoiceId=self.config.polly_voice,
+                                         Engine=self.config.polly_engine)
+        log.info("voice tts provider=polly language=%s voice=%s engine=%s latency_ms=%d",
+                 selected, self.config.polly_voice, self.config.polly_engine,
+                 round((time.perf_counter() - started) * 1000))
         return r["AudioStream"].read()
 
 

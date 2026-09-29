@@ -20,6 +20,7 @@ from .data_layer import Catalogue, Interactions, Personalizer, Profiles, Recomme
 from .memory import MemoryStore
 from .prompts import GREETING_TRIGGER, SUMMARY_PROMPT, build_system
 from .tools import ToolExecutor, TurnState, all_specs
+from .voice import text_language
 
 log = logging.getLogger("companion.agent")
 
@@ -71,7 +72,8 @@ class CompanionAgent:
         self.ctx = ctx
 
     # ------------------------------------------------------------------ main turn
-    def chat(self, user_id: str, text: str, channel: str = "text", hidden: bool = False) -> dict:
+    def chat(self, user_id: str, text: str, channel: str = "text", hidden: bool = False,
+             voice_language: str | None = None, voice_languages: list[str] | None = None) -> dict:
         ctx = self.ctx
         with ctx.memory.lock(user_id):
             conv = ctx.memory.load_conversation(user_id)
@@ -86,12 +88,17 @@ class CompanionAgent:
             hint = ("The customer's latest message IS an explicit confirmation of the pending checkout summary; "
                     "you may call place_order." if confirmed else None)
             if not hidden:
-                conv["transcript"].append({"role": "user", "text": text, "channel": channel, "ts": _ts()})
+                user_entry = {"role": "user", "text": text, "channel": channel, "ts": _ts()}
+                if voice_language:
+                    user_entry["language"] = voice_language
+                if voice_languages:
+                    user_entry["languages"] = list(voice_languages)
+                conv["transcript"].append(user_entry)
 
             reply, error = "", None
             started = time.time()
             try:
-                reply = self._loop(st, messages, conv["summary"], hint)
+                reply = self._loop(st, messages, conv["summary"], hint, voice_language, voice_languages or [])
                 conv["messages"] = messages
                 conv["turn"] = turn
             except Exception as exc:  # AI service problems must not lose the customer's state
@@ -112,22 +119,28 @@ class CompanionAgent:
                 conv["turn"] = turn
             ctx.memory.save_session(user_id, session)
             ctx.memory.save_long_term(user_id, long_term)
-            entry = {"role": "assistant", "text": reply, "channel": channel, "ts": _ts(), "actions": st.actions,
+            reply_language = text_language(reply)
+            entry = {"role": "assistant", "text": reply, "channel": channel, "ts": _ts(), "language": reply_language,
+                     "actions": st.actions,
                      "cards": st.cards, "checkout": st.checkout, "order": st.order, "error": error}
             conv["transcript"].append(entry)
             if not error:
                 self._compact(conv)
             ctx.memory.save_conversation(user_id, conv)
-            ctx.memory.log(user_id, "turn", {"channel": channel, "confirmed": confirmed, "tools": [a["tool"] for a in st.actions],
+            ctx.memory.log(user_id, "turn", {"channel": channel, "selected_language": voice_language,
+                                             "detected_languages": voice_languages or [], "reply_language": reply_language,
+                                             "confirmed": confirmed, "tools": [a["tool"] for a in st.actions],
                                              "seconds": round(time.time() - started, 2), "error": error})
             return {**entry, "basket": ctx.store.get_basket(user_id), "pending_checkout": session.get("pending_checkout"),
                     "memory": self.memory_view(session, long_term)}
 
-    def _loop(self, st: TurnState, messages: list, summary: str, hint: str | None) -> str:
+    def _loop(self, st: TurnState, messages: list, summary: str, hint: str | None,
+              voice_language: str | None = None, voice_languages: list[str] | None = None) -> str:
         ctx = self.ctx
         for _ in range(ctx.config.max_tool_steps):
             basket = ctx.store.get_basket(st.user_id)
-            system = build_system(ctx, st.user_id, st.session, st.long_term, summary, st.channel, basket, hint)
+            system = build_system(ctx, st.user_id, st.session, st.long_term, summary, st.channel, basket, hint,
+                                  voice_language, voice_languages or [])
             resp = ctx.llm.converse(system, messages, ctx.tools)
             msg = resp["output"]["message"]
             msg["content"] = [b for b in msg.get("content", []) if b] or [{"text": "..."}]

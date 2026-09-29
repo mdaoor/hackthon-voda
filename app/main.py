@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from .agent import AppContext
 from .config import ROOT, Config
-from .voice import Voice
+from .voice import SUPPORTED_LANGUAGES, Voice, text_language
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("companion")
@@ -58,6 +58,8 @@ class ChatIn(BaseModel):
     user_id: str
     message: str = Field(min_length=1, max_length=2000)
     channel: str = "text"
+    voice_language: str | None = None
+    voice_languages: list[str] = Field(default_factory=list)
 
 
 class ConfirmIn(BaseModel):
@@ -73,6 +75,7 @@ class BasketIn(BaseModel):
 
 class SpeakIn(BaseModel):
     text: str = Field(max_length=4000)
+    language: str | None = None
 
 
 # ------------------------------------------------------------------ meta
@@ -86,7 +89,10 @@ def config():
     c = ctx()
     return {"currency": c.config.currency, "demo_date": c.config.demo_date, "stt": VOICE.stt_mode,
             "tts": c.config.tts_provider, "sample_ids": c.profiles.sample_ids() if c.config.show_sample_ids else [],
-            "model": getattr(c.llm, "active_model", None)}
+            "model": getattr(c.llm, "active_model", None),
+            "voice_languages": [{"code": "en-US", "label": "English"}, {"code": "ar-SA", "label": "العربية"}],
+            "configured_voice_languages": list(VOICE.languages),
+            "voice_auto_detection": VOICE.auto_language_available}
 
 
 @app.get("/api/status")
@@ -132,7 +138,12 @@ def session_reset(body: StartIn):
 def chat(body: ChatIn):
     uid = valid_user(body.user_id)
     channel = "voice" if body.channel == "voice" else "text"
-    return ctx().agent.chat(uid, body.message.strip(), channel=channel)
+    if body.voice_language is not None and body.voice_language not in SUPPORTED_LANGUAGES:
+        raise HTTPException(422, f"Unsupported voice language '{body.voice_language}'.")
+    if any(language not in SUPPORTED_LANGUAGES for language in body.voice_languages):
+        raise HTTPException(422, "voice_languages contains an unsupported language.")
+    return ctx().agent.chat(uid, body.message.strip(), channel=channel,
+                            voice_language=body.voice_language, voice_languages=body.voice_languages)
 
 
 @app.get("/api/customer/{user_id}/memory")
@@ -231,27 +242,35 @@ def rewards(user_id: str):
 
 # ------------------------------------------------------------------ voice
 @app.post("/api/voice/transcribe")
-async def voice_transcribe(request: Request, user_id: str, rate: int = 16000):
+async def voice_transcribe(request: Request, user_id: str, rate: int = 16000, language: str = "auto"):
     valid_user(user_id)
+    try:
+        VOICE.validate_language(language)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     pcm = await request.body()
     if len(pcm) > 16000 * 2 * 60:
         raise HTTPException(413, "Recording is too long; keep it under 60 seconds.")
     try:
-        text = await VOICE.transcribe(pcm, sample_rate=rate)
+        result = await VOICE.transcribe(pcm, sample_rate=rate, language=language)
     except Exception as exc:
         log.exception("transcribe failed")
         return JSONResponse({"ok": False, "error": str(exc)[:200], "fallback": "browser"}, status_code=502)
-    return {"ok": True, "text": text}
+    return {"ok": True, **result}
 
 
 @app.post("/api/voice/speak")
 def voice_speak(body: SpeakIn):
+    if body.language is not None and body.language not in SUPPORTED_LANGUAGES:
+        raise HTTPException(422, f"Unsupported voice language '{body.language}'.")
     try:
-        audio = VOICE.speak(body.text)
+        language = body.language or text_language(body.text)
+        audio = VOICE.speak(body.text, language=language)
     except Exception as exc:
         log.exception("polly failed")
-        return JSONResponse({"ok": False, "error": str(exc)[:200], "fallback": "browser"}, status_code=502)
-    return Response(content=audio, media_type="audio/mpeg")
+        return JSONResponse({"ok": False, "error": str(exc)[:200], "fallback": "browser",
+                             "language": body.language or text_language(body.text)}, status_code=502)
+    return Response(content=audio, media_type="audio/mpeg", headers={"X-Voice-Language": language})
 
 
 # ------------------------------------------------------------------ static UI

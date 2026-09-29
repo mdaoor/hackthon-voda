@@ -50,14 +50,26 @@ class Config:
     keep_recent_messages: int = field(default_factory=lambda: int(_env("KEEP_RECENT_MESSAGES", "16")))
 
     stt_provider: str = field(default_factory=lambda: _env("STT_PROVIDER", "auto"))  # auto|transcribe|browser
-    transcribe_language: str = field(default_factory=lambda: _env("TRANSCRIBE_LANGUAGE", "en-US"))
-    polly_voice: str = field(default_factory=lambda: _env("POLLY_VOICE_ID", "Joanna"))
+    # TRANSCRIBE_LANGUAGE remains a supported single-language compatibility
+    # setting. TRANSCRIBE_LANGUAGES takes precedence when both are supplied.
+    transcribe_language: str = field(default_factory=lambda: _env("TRANSCRIBE_LANGUAGE", ""))
+    transcribe_languages: tuple[str, ...] = field(default_factory=tuple)
+    polly_voice: str = field(default_factory=lambda: _env("POLLY_VOICE_ID", "Hala"))
     polly_engine: str = field(default_factory=lambda: _env("POLLY_ENGINE", "neural"))
     tts_provider: str = field(default_factory=lambda: _env("TTS_PROVIDER", "polly"))  # polly|browser
 
     show_sample_ids: bool = field(default_factory=lambda: _env("SHOW_SAMPLE_IDS", "true").lower() == "true")
 
     def __post_init__(self):
+        configured_languages = _env("TRANSCRIBE_LANGUAGES")
+        if configured_languages:
+            languages = [part.strip() for part in configured_languages.split(",") if part.strip()]
+        elif self.transcribe_language:
+            languages = [self.transcribe_language]
+        else:
+            languages = ["en-US", "ar-SA"]
+        self.transcribe_languages = tuple(dict.fromkeys(languages))
+        self.transcribe_language = self.transcribe_language or self.transcribe_languages[0]
         d = self.data_dir
         self.products_path = Path(_env("PRODUCTS_PATH")) if _env("PRODUCTS_PATH") else _find(d, "products")
         self.customers_path = Path(_env("CUSTOMERS_PATH")) if _env("CUSTOMERS_PATH") else _find(d, "train", "customers")

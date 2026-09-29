@@ -29,6 +29,14 @@ python scripts/run_scenarios.py --url ... --user <ID> --scenario "their message 
 | 9 | "Add that too, then check out." | `prepare_checkout` produces a summary card with a **Confirm order** button |
 | 10 | "Remove that item before placing the order." | Not treated as a confirmation. The item is removed, the old summary is voided and a new summary is shown. |
 | 11 | "Yes, place the order." (or press **Confirm order**) | Order created only after explicit confirmation. Order card, Rewards → Orders. |
+
+## Bilingual voice checks
+
+- Leave voice language on **Auto** and try an English request, then an MSA request.
+- Try common Egyptian wording and a mixed request such as “عايز smartphone under 100”. Egyptian Arabic is best-effort through the `ar-SA` model.
+- Select **English** and **العربية** manually and verify fixed-language recognition.
+- Disable or interrupt the AWS voice providers to verify the Chrome/Edge browser fallback; choose a language explicitly before browser recognition if Auto has not detected one yet.
+- Confirm Arabic messages render right-to-left and try an Arabic checkout confirmation such as “نعم، أكد الطلب”.
 | 12 | Ask about something ineligible, e.g. an iOS-only item for an Android customer | Clear unavailability reason plus an alternative |
 | 13 | **Change customer** to another ID, then back | Separate baskets and memory. The original context is restored. |
 
