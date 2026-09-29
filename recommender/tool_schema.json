@@ -1,0 +1,42 @@
+{
+  "name": "recommend_products",
+  "description": "Personalized product recommendations across Home, Shop and Rewards (1,200 products, 24 categories). Returns the top-k eligible products for a customer, best first, each with plain-language reasons. Use user_id for known customers; pass profile for new customers; pass events to account for what the customer did in the current session. Eligibility (region, device OS, launch date, already-owned durables) is enforced automatically.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "user_id": {
+        "type": "string",
+        "description": "Known customer ID, e.g. U024000. Omit for a new customer."
+      },
+      "profile": {
+        "type": "object",
+        "description": "Customer profile for new customers. region and device_os determine eligibility.",
+        "properties": {
+          "region": {"type": "string", "enum": ["north", "south", "east", "west", "central", "coastal"]},
+          "device_os": {"type": "string", "enum": ["android", "ios"]},
+          "declared_interests": {"type": "array", "items": {"type": "string"}, "description": "Category names, e.g. outdoor, fitness"},
+          "owned_items": {"type": "array", "items": {"type": "string"}, "description": "Owned durable product IDs to exclude"},
+          "monthly_budget": {"type": "number"},
+          "preferred_quality": {"type": "integer", "minimum": 1, "maximum": 5},
+          "household_size": {"type": "integer"},
+          "membership_tier": {"type": "string", "enum": ["basic", "plus", "premium"]}
+        }
+      },
+      "events": {
+        "type": "array",
+        "description": "Extra interactions not yet in the stored history (e.g. this session). Dates must be before 2026-06-01.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "product_id": {"type": "string"},
+            "event_type": {"type": "string", "enum": ["view", "cart", "favorite", "purchase", "redeem", "return", "cancel"]},
+            "event_date": {"type": "string", "description": "YYYY-MM-DD"},
+            "app_section": {"type": "string", "enum": ["home", "shop", "rewards"]}
+          },
+          "required": ["product_id", "event_type", "event_date"]
+        }
+      },
+      "k": {"type": "integer", "default": 5, "minimum": 1, "maximum": 200, "description": "Number of products to return"}
+    }
+  }
+}
