@@ -1,6 +1,7 @@
 """End-to-end tests without AWS: a scripted fake LLM drives the real agent loop,
 tools, memory and the starter's basket/order functions."""
 import os
+import pickle
 import sys
 import tempfile
 from pathlib import Path
@@ -16,6 +17,18 @@ from app.agent import AppContext  # noqa: E402
 from app.confirmation import is_explicit_confirmation  # noqa: E402
 
 UID = "U000001"  # north, android, preferred quality 4, marketing opt-in 0
+
+
+class PickledRecommendationModel:
+    def recommend(self, user_id, n=5):
+        assert user_id
+        return [("I0003", 0.70), ("I0001", 0.95), ("I0002", 0.80)][:n]
+
+
+class PickledScoringModel:
+    def predict(self, user_id, product_id):
+        assert user_id
+        return {"I0001": 0.9, "I0002": 0.7}.get(product_id, 0.1)
 
 
 class FakeLLM:
@@ -76,10 +89,30 @@ def test_search_respects_eligibility_budget_and_prices(ctx):
 
 
 def test_recommender_and_interactions_loaded(ctx):
-    assert ctx.recommender.source == "recommendations.csv"
     assert ctx.interactions.available and ctx.insights(UID)["events"] > 0
     recs = ctx.personalizer.recommendations(UID, limit=5)["results"]
     assert recs and all(r["eligible"] for r in recs)
+
+
+def test_recommender_loads_pickle_and_runs_model(ctx, tmp_path):
+    from app.data_layer import Recommender
+
+    output = tmp_path / "recommendation_model.pkl"
+    with output.open("wb") as artifact:
+        pickle.dump(PickledRecommendationModel(), artifact)
+    recommender = Recommender(output, ctx.catalogue)
+    assert recommender.for_user("U1") == ["I0001", "I0002", "I0003"]
+    assert recommender.source == "recommendation_model.pkl"
+
+
+def test_recommender_can_rank_catalogue_with_scoring_model(ctx, tmp_path):
+    from app.data_layer import Recommender
+
+    output = tmp_path / "scoring_model.pickle"
+    with output.open("wb") as artifact:
+        pickle.dump(PickledScoringModel(), artifact)
+    recommender = Recommender(output, ctx.catalogue)
+    assert recommender.for_user("U1")[:2] == ["I0001", "I0002"]
 
 
 # ---------------------------------------------------------------- memory + references

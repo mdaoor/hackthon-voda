@@ -3,16 +3,16 @@
 * Catalogue   - search, eligibility (delegated to the starter's Store.product), final prices.
 * Profiles    - sanitized customer profile (drops ML target labels such as relevant_items).
 * Interactions- behaviour insights across Home / Shop / Rewards + category co-occurrence.
-* Recommender - ranked product list per customer, tolerant to several file layouts.
+* Recommender - top-five product inference from a trusted pickled model.
 * Personalizer- explainable scoring used by search, recommendations and cross-sell.
 
-Schema-tolerant: column names for interactions / recommender output are resolved
-by aliases because the organisers only describe the fields, not the headers.
+Interaction columns are resolved by aliases because the organisers only
+describe the fields, not the headers.
 """
 from __future__ import annotations
 
 import csv
-import json
+import pickle
 import re
 from collections import Counter, defaultdict
 from datetime import date
@@ -22,7 +22,6 @@ from pathlib import Path
 from starter.store import ToolError, money
 
 HIDDEN_PROFILE_FIELDS = {"relevant_items"}  # ML target labels - never shown to the model
-PRODUCT_ID_RE = re.compile(r"\bI\d{3,}\b")
 
 
 # --------------------------------------------------------------------------- utils
@@ -342,13 +341,23 @@ class Interactions:
 
 # --------------------------------------------------------------------------- recommender
 class Recommender:
-    """Loads ranked recommendations. Supports long (user,product,rank|score),
-    wide (user, 'I0001 I0002 ...' / JSON list) CSV layouts and JSON files."""
+    """Runs a trusted pickled recommendation model and caches its top-five output.
+
+    Preferred model contract: ``recommend(user_id, n=5)``. For compatibility,
+    ``recommend_for_user``, ``predict_for_user`` and callable objects are also
+    accepted. A collaborative-filtering ``predict(user_id, product_id)`` model
+    is supported by scoring the catalogue. Ranked results may contain IDs,
+    ``(ID, score)`` pairs, or dictionaries with product/item IDs and scores.
+
+    Pickle can execute code while loading. Only configure artifacts produced by
+    and transferred from a trusted source.
+    """
 
     def __init__(self, path, catalogue: Catalogue):
         self.ranked: dict[str, list[str]] = {}
         self.source = "none"
         self.catalogue = catalogue
+        self.model = None
         if path and Path(path).is_file():
             try:
                 self._load(Path(path))
@@ -357,36 +366,81 @@ class Recommender:
                 print(f"[recommender] could not parse {path}: {exc}")
 
     def _load(self, path):
-        if path.suffix.lower() == ".json":
-            data = json.loads(path.read_text())
-            if isinstance(data, dict):
-                self.ranked = {u: [str(x) for x in (v if isinstance(v, list) else PRODUCT_ID_RE.findall(str(v)))]
-                               for u, v in data.items()}
-            else:
-                rows = data
-                self._from_rows(rows, list(rows[0].keys()) if rows else [])
-            return
-        rows = read_rows(path)
-        self._from_rows(rows, list(rows[0].keys()) if rows else [])
+        if path.suffix.lower() not in (".pkl", ".pickle"):
+            raise ValueError("recommendation model must be a .pkl or .pickle file")
+        with open(path, "rb") as artifact:
+            self.model = pickle.load(artifact)
 
-    def _from_rows(self, rows, cols):
-        ucol = resolve(cols, ("user_id", "customer_id"), ("user", "customer"))
-        pcol = resolve(cols, ("product_id", "item_id"), ())
-        rcol = resolve(cols, ("rank", "position"), ("rank",))
-        scol = resolve(cols, ("score", "prediction", "probability"), ("score", "pred", "prob"))
-        if ucol and pcol:
-            grouped = defaultdict(list)
-            for r in rows:
-                key = (to_float(r.get(rcol), 1e9) if rcol else -to_float(r.get(scol)) if scol else len(grouped[r[ucol]]))
-                grouped[r[ucol]].append((key, r[pcol]))
-            self.ranked = {u: [p for _, p in sorted(v)] for u, v in grouped.items()}
-            return
-        lcol = next((c for c in cols if c != ucol and any(k in c.lower() for k in ("rec", "item", "product", "top"))), None)
-        if ucol and lcol:
-            self.ranked = {r[ucol]: PRODUCT_ID_RE.findall(r[lcol]) for r in rows}
+    @staticmethod
+    def _normalise(result):
+        if hasattr(result, "tolist"):
+            result = result.tolist()
+        if isinstance(result, dict):
+            for key in ("recommendations", "product_ids", "item_ids", "results"):
+                if key in result:
+                    result = result[key]
+                    break
+            else:
+                result = [item for item, _ in sorted(result.items(), key=lambda pair: to_float(pair[1]), reverse=True)]
+        if isinstance(result, str):
+            result = [result]
+        if not isinstance(result, (list, tuple)):
+            try:
+                result = list(result)
+            except TypeError as exc:
+                raise TypeError("model recommendation output must be an iterable of product IDs") from exc
+        scored = []
+        for position, item in enumerate(result):
+            score = None
+            if isinstance(item, dict):
+                pid = next((item.get(k) for k in ("product_id", "item_id", "id") if item.get(k) is not None), None)
+                score = next((item.get(k) for k in ("score", "prediction", "probability") if item.get(k) is not None), None)
+            elif isinstance(item, (list, tuple)):
+                pid = item[0] if item else None
+                score = item[1] if len(item) > 1 else None
+            else:
+                pid = item
+            if pid is not None:
+                scored.append((position, str(pid), score))
+        if scored and all(score is not None for _, _, score in scored):
+            scored.sort(key=lambda row: to_float(row[2]), reverse=True)
+        return list(dict.fromkeys(pid for _, pid, _ in scored))[:5]
+
+    def _infer(self, user_id):
+        model = self.model
+        if model is None:
+            return []
+        method = next((getattr(model, name) for name in ("recommend", "recommend_for_user", "predict_for_user")
+                       if callable(getattr(model, name, None))), None)
+        if method is None and callable(model):
+            method = model
+        if method is None:
+            predict = getattr(model, "predict", None)
+            if not callable(predict):
+                raise TypeError("pickled model must provide recommend(user_id, n=5), predict(user_id, product_id), or be callable")
+            scored = []
+            for product_id in self.catalogue.products:
+                prediction = predict(user_id, product_id)
+                score = getattr(prediction, "est", prediction)
+                scored.append((product_id, float(score)))
+            return self._normalise(scored)
+        try:
+            result = method(user_id, n=5)
+        except TypeError:
+            try:
+                result = method(user_id, 5)
+            except TypeError:
+                result = method(user_id)
+        return self._normalise(result)
 
     def for_user(self, user_id):
-        return [p for p in self.ranked.get(user_id, []) if p in self.catalogue.products]
+        if user_id not in self.ranked:
+            try:
+                self.ranked[user_id] = self._infer(user_id)
+            except Exception as exc:
+                print(f"[recommender] inference failed for {user_id}: {exc}")
+                self.ranked[user_id] = []
+        return [p for p in self.ranked[user_id] if p in self.catalogue.products]
 
 
 # --------------------------------------------------------------------------- personalisation

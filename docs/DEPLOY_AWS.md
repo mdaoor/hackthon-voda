@@ -33,15 +33,15 @@ Inference-profile prefixes follow the region family: `us.`, `eu.`, `apac.`, or `
 Copy the organisers' files into `data/challenge/` and point the app at them:
 
 ```bash
-mkdir -p data/challenge && cp /path/to/{train,products,interactions}* /path/to/<your recommender file> data/challenge/
+mkdir -p data/challenge && cp /path/to/{train,products,interactions}* /path/to/recommendation_model.pkl data/challenge/
 export DATA_DIR=data/challenge
-# only if the file names differ from train/products/interactions/recommendations:
-export RECOMMENDATIONS_PATH=data/challenge/my_recs.csv
+# only if the model file name differs from recommendation_model.pkl:
+export RECOMMENDATION_MODEL_PATH=data/challenge/my_model.pkl
 ```
 
 - **Delimiters** are auto-detected (`;`, `,`, tab, `|`). The starter `Store` requires semicolons for `products` and `train`, and so do the organiser files.
 - **Interactions columns** are matched by alias. `user_id`/`customer_id`, `product_id`, `app_section`, `event_type`, `event_date`, durations, depth and transaction value are all handled.
-- **Recommender output** can be long format (`user_id, product_id, rank|score`), wide format (`user_id, "I0001 I0002 …"`) or JSON (`{"U000001": ["I0001", …]}`).
+- **Recommendation model** must be a trusted `.pkl`/`.pickle` object exposing `recommend(user_id, n=5)` or `predict(user_id, product_id)`.
 - **`relevant_items`** in `train` is dropped before anything reaches the agent.
 - If `DEMO_DATE` or `CURRENCY` is specified by the organisers, export those too.
 

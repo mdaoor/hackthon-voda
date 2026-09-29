@@ -202,7 +202,7 @@ def home(user_id: str):
     ins = c.insights(uid)
     rejected = set(c.memory.load_session(uid).get("rejected", {}))
     return {"customer": customer_view(uid), "nudges": c.personalizer.proactive_nudges(uid, ins),
-            "for_you": c.personalizer.recommendations(uid, limit=6, exclude_ids=rejected)["results"],
+            "for_you": c.personalizer.recommendations(uid, limit=5, exclude_ids=rejected)["results"],
             "activity": {k: ins.get(k) for k in ("events", "top_categories", "recent_views", "open_cart_items", "recent_purchases")}}
 
 

@@ -45,7 +45,7 @@ app/
   confirmation.py  Deterministic "is this an explicit confirmation?" check on the customer's own words
   prompts.py       Behaviour rules plus live context (profile, insights, recs, memory, basket)
   data_layer.py    Catalogue, eligibility, profiles (drops relevant_items), interactions insights,
-                   recommender loader (several layouts), personalised scoring, cross-sell, proactive nudges
+                   trusted pickle-model inference, personalised scoring, cross-sell, proactive nudges
   memory.py        SQLite: conversation + summary, session memory, long-term memory, audit log
   llm.py           Bedrock client with automatic model fallback
   voice.py         Amazon Transcribe streaming (STT) and Amazon Polly (TTS)

@@ -38,7 +38,7 @@ class AppContext:
         self.catalogue = Catalogue(self.store)
         self.profiles = Profiles(self.store)
         self.interactions = Interactions(config.interactions_path, self.catalogue)
-        self.recommender = Recommender(config.recommendations_path, self.catalogue)
+        self.recommender = Recommender(config.recommendation_model_path, self.catalogue)
         self.personalizer = Personalizer(self.catalogue, self.profiles, self.interactions, self.recommender)
         self.memory = MemoryStore(config.memory_db)
         if llm is None:
@@ -63,7 +63,7 @@ class AppContext:
                 "recommender_source": self.recommender.source,
                 "recommender_users": len(self.recommender.ranked),
                 "files": {k: str(getattr(self.config, k)) for k in
-                          ("products_path", "customers_path", "interactions_path", "recommendations_path")}}
+                          ("products_path", "customers_path", "interactions_path", "recommendation_model_path")}}
 
 
 class CompanionAgent:

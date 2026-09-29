@@ -32,7 +32,7 @@ class Config:
     products_path: Path | None = None
     customers_path: Path | None = None
     interactions_path: Path | None = None
-    recommendations_path: Path | None = None
+    recommendation_model_path: Path | None = None
     runtime_dir: Path = field(default_factory=lambda: Path(_env("RUNTIME_DIR", ROOT / "runtime")))
     demo_date: str = field(default_factory=lambda: _env("DEMO_DATE", "2026-04-01"))
     currency: str = field(default_factory=lambda: _env("CURRENCY", "DEMO_UNITS"))
@@ -62,8 +62,11 @@ class Config:
         self.products_path = Path(_env("PRODUCTS_PATH")) if _env("PRODUCTS_PATH") else _find(d, "products")
         self.customers_path = Path(_env("CUSTOMERS_PATH")) if _env("CUSTOMERS_PATH") else _find(d, "train", "customers")
         self.interactions_path = Path(_env("INTERACTIONS_PATH")) if _env("INTERACTIONS_PATH") else _find(d, "interactions")
-        self.recommendations_path = (Path(_env("RECOMMENDATIONS_PATH")) if _env("RECOMMENDATIONS_PATH")
-                                     else _find(d, "recommendations", "recommender_output", "recs"))
+        self.recommendation_model_path = (Path(_env("RECOMMENDATION_MODEL_PATH"))
+                                          if _env("RECOMMENDATION_MODEL_PATH")
+                                          else next((p for stem in ("recommendation_model", "recommender_model", "model")
+                                                     for ext in (".pkl", ".pickle")
+                                                     if (p := d / f"{stem}{ext}").is_file()), None))
         if not self.products_path or not self.customers_path:
             raise RuntimeError(f"products and train/customers files are required; looked in {d}")
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
