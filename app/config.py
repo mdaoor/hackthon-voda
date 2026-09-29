@@ -76,9 +76,11 @@ class Config:
         self.interactions_path = Path(_env("INTERACTIONS_PATH")) if _env("INTERACTIONS_PATH") else _find(d, "interactions")
         self.recommendation_model_path = (Path(_env("RECOMMENDATION_MODEL_PATH"))
                                           if _env("RECOMMENDATION_MODEL_PATH")
-                                          else next((p for stem in ("recommendation_model", "recommender_model", "model")
-                                                     for ext in (".pkl", ".pickle")
-                                                     if (p := d / f"{stem}{ext}").is_file()), None))
+                                          else next((p for p in (
+                                              ROOT / "recommender" / "personalization_model_v6.pkl",
+                                              *(d / f"{stem}{ext}" for stem in
+                                                ("recommendation_model", "recommender_model", "model")
+                                                for ext in (".pkl", ".pickle"))) if p.is_file()), None))
         if not self.products_path or not self.customers_path:
             raise RuntimeError(f"products and train/customers files are required; looked in {d}")
         self.runtime_dir.mkdir(parents=True, exist_ok=True)

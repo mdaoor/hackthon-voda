@@ -12,6 +12,7 @@ COPY web web
 COPY starter starter
 COPY data data
 COPY scripts scripts
+COPY recommender recommender
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD python -c "import urllib.request,os;urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/health')"

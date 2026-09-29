@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 EMPTY_SESSION = {
     "goal": None, "budget": None, "budget_scope": "per_item", "preferences": [], "dislikes": [],
     "rejected": {}, "presented": [], "pending_checkout": None, "last_order": None, "notes": [], "ui_events": [],
+    "recommendation_events": [],
 }
 EMPTY_LONG_TERM = {"preferences": [], "dislikes": [], "goals": [], "orders": []}
 
@@ -88,6 +89,14 @@ class MemoryStore:
     def save_session(self, user_id, data):
         with self._db() as db:
             db.execute("INSERT OR REPLACE INTO session_memory VALUES (?,?)", (user_id, json.dumps(data)))
+
+    def append_recommendation_events(self, user_id, events, limit=100):
+        """Append chronological model events to this conversation's working memory."""
+        with self.lock(user_id):
+            session = self.load_session(user_id)
+            session["recommendation_events"] = (session.get("recommendation_events", []) + list(events))[-limit:]
+            self.save_session(user_id, session)
+            return session["recommendation_events"]
 
     def load_long_term(self, user_id):
         with self._db() as db:

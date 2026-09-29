@@ -14,6 +14,7 @@ from __future__ import annotations
 import csv
 import pickle
 import re
+import sys
 from collections import Counter, defaultdict
 from datetime import date
 from decimal import Decimal
@@ -341,38 +342,57 @@ class Interactions:
 
 # --------------------------------------------------------------------------- recommender
 class Recommender:
-    """Runs a trusted pickled recommendation model and caches its top-five output.
+    """Adapter for the supplied v6 personalization tool, with a safe heuristic fallback."""
 
-    Preferred model contract: ``recommend(user_id, n=5)``. For compatibility,
-    ``recommend_for_user``, ``predict_for_user`` and callable objects are also
-    accepted. A collaborative-filtering ``predict(user_id, product_id)`` model
-    is supported by scoring the catalogue. Ranked results may contain IDs,
-    ``(ID, score)`` pairs, or dictionaries with product/item IDs and scores.
+    CUTOFF = date(2026, 6, 1)
 
-    Pickle can execute code while loading. Only configure artifacts produced by
-    and transferred from a trusted source.
-    """
-
-    def __init__(self, path, catalogue: Catalogue):
-        self.ranked: dict[str, list[str]] = {}
+    def __init__(self, path, catalogue: Catalogue, event_provider=None):
+        self.ranked: dict[str, list[dict]] = {}
         self.source = "none"
         self.catalogue = catalogue
+        self.event_provider = event_provider or (lambda _user_id: [])
         self.model = None
+        self.is_v6 = False
+        self.load_error = None
+        self.metadata = None
         if path and Path(path).is_file():
             try:
                 self._load(Path(path))
                 self.source = Path(path).name
             except Exception as exc:  # never fail startup on an unexpected layout
-                print(f"[recommender] could not parse {path}: {exc}")
+                self.load_error = f"{type(exc).__name__}: {exc}"
+                print(f"[recommender] could not parse {path}: {self.load_error}")
+        elif path:
+            self.load_error = f"model file not found: {path}"
 
     def _load(self, path):
         if path.suffix.lower() not in (".pkl", ".pickle"):
             raise ValueError("recommendation model must be a .pkl or .pickle file")
-        with open(path, "rb") as artifact:
-            self.model = pickle.load(artifact)
+        # The v6 pickle stores its classes under these top-level module names.
+        # Put the supplied source directory first only while importing/loading.
+        v2_dir = path.parent / "v2"
+        if path.name == "personalization_model_v6.pkl":
+            if not all((v2_dir / name).is_file() for name in ("personalization_tool.py", "feats.py", "core.py")):
+                raise FileNotFoundError("v6 source modules are missing from recommender/v2: "
+                                        "personalization_tool.py, feats.py and core.py are required")
+            sys.path.insert(0, str(v2_dir))
+            try:
+                from personalization_tool import load_tool
+                self.model = load_tool(path)
+                self.is_v6 = True
+            finally:
+                if sys.path and sys.path[0] == str(v2_dir):
+                    sys.path.pop(0)
+        else:  # compatibility for trusted legacy/test artifacts
+            with open(path, "rb") as artifact:
+                self.model = pickle.load(artifact)
+        describe = getattr(self.model, "describe", None)
+        if callable(describe):
+            self.metadata = describe()
+            self.is_v6 = True
 
     @staticmethod
-    def _normalise(result):
+    def _normalise(result, cap=200):
         if hasattr(result, "tolist"):
             result = result.tolist()
         if isinstance(result, dict):
@@ -395,21 +415,45 @@ class Recommender:
             if isinstance(item, dict):
                 pid = next((item.get(k) for k in ("product_id", "item_id", "id") if item.get(k) is not None), None)
                 score = next((item.get(k) for k in ("score", "prediction", "probability") if item.get(k) is not None), None)
+                row = dict(item)
             elif isinstance(item, (list, tuple)):
                 pid = item[0] if item else None
                 score = item[1] if len(item) > 1 else None
+                row = {}
             else:
                 pid = item
+                row = {}
             if pid is not None:
-                scored.append((position, str(pid), score))
-        if scored and all(score is not None for _, _, score in scored):
-            scored.sort(key=lambda row: to_float(row[2]), reverse=True)
-        return list(dict.fromkeys(pid for _, pid, _ in scored))[:5]
+                row["product_id"] = str(pid)
+                row["model_rank"] = int(row.get("rank") or position + 1)
+                row["rank"] = row["model_rank"]
+                if "reasons" in row and not isinstance(row["reasons"], list):
+                    row["reasons"] = [str(row["reasons"])]
+                scored.append((position, str(pid), score, row))
+        if scored and all(score is not None for _, _, score, _ in scored):
+            scored.sort(key=lambda value: to_float(value[2]), reverse=True)
+        out, seen = [], set()
+        for _, pid, _, row in scored:
+            if pid not in seen:
+                seen.add(pid)
+                out.append(row)
+        return out[:cap]
 
-    def _infer(self, user_id):
+    def _valid_events(self, events):
+        valid = []
+        for event in events or []:
+            when = parse_date(event.get("event_date", ""))
+            if when and when < self.CUTOFF and event.get("product_id"):
+                valid.append({k: event[k] for k in ("product_id", "event_type", "event_date", "app_section") if k in event})
+        return valid[-100:]
+
+    def _infer(self, user_id, events=None):
         model = self.model
         if model is None:
             return []
+        if self.is_v6:
+            result = model.recommend(user_id=user_id, events=self._valid_events(events), k=200, explain=True)
+            return self._normalise(result, 200)
         method = next((getattr(model, name) for name in ("recommend", "recommend_for_user", "predict_for_user")
                        if callable(getattr(model, name, None))), None)
         if method is None and callable(model):
@@ -423,7 +467,7 @@ class Recommender:
                 prediction = predict(user_id, product_id)
                 score = getattr(prediction, "est", prediction)
                 scored.append((product_id, float(score)))
-            return self._normalise(scored)
+            return self._normalise(scored, 200)
         try:
             result = method(user_id, n=5)
         except TypeError:
@@ -431,16 +475,36 @@ class Recommender:
                 result = method(user_id, 5)
             except TypeError:
                 result = method(user_id)
-        return self._normalise(result)
+        return self._normalise(result, 200)
 
-    def for_user(self, user_id):
-        if user_id not in self.ranked:
+    @staticmethod
+    def _event_key(events):
+        return tuple((e.get("product_id"), e.get("event_type"), e.get("event_date"), e.get("app_section"))
+                     for e in (events or []))
+
+    def ranked_for_user(self, user_id, events=None):
+        events = list(self.event_provider(user_id) if events is None else events)
+        key = (user_id, self._event_key(self._valid_events(events)))
+        if key not in self.ranked:
             try:
-                self.ranked[user_id] = self._infer(user_id)
+                self.ranked[key] = self._infer(user_id, events)
             except Exception as exc:
                 print(f"[recommender] inference failed for {user_id}: {exc}")
-                self.ranked[user_id] = []
-        return [p for p in self.ranked[user_id] if p in self.catalogue.products]
+                self.ranked[key] = []
+        return [row for row in self.ranked[key] if row["product_id"] in self.catalogue.products]
+
+    def for_user(self, user_id, events=None):
+        return [row["product_id"] for row in self.ranked_for_user(user_id, events)]
+
+    def events_changed(self, user_id, events):
+        had_cache = any(key[0] == user_id for key in self.ranked)
+        self.ranked = {key: value for key, value in self.ranked.items() if key[0] != user_id}
+        if had_cache:
+            self.ranked_for_user(user_id, events)
+
+    def status(self):
+        return {"loaded": self.model is not None, "source": self.source, "v6": self.is_v6,
+                "load_error": self.load_error, "metadata": self.metadata, "cached_rankings": len(self.ranked)}
 
 
 # --------------------------------------------------------------------------- personalisation
@@ -450,10 +514,14 @@ class Personalizer:
         top = self.interactions.popularity.most_common(1)
         self._pop_max = top[0][1] if top else 1
 
-    def score(self, user_id, pid, budget=None, affinity=None, rec_rank=None):
+    def score(self, user_id, pid, budget=None, affinity=None, rec_rank=None, model_reasons=None):
         p = self.catalogue.products[pid]
         prof = self.profiles.get(user_id)
         s, reasons = 0.0, []
+        for reason in model_reasons or []:
+            reason = str(reason).strip()
+            if reason and reason not in reasons:
+                reasons.append(reason)
         if rec_rank is None:
             recs = self.recommender.for_user(user_id)
             rec_rank = recs.index(pid) + 1 if pid in recs else None
@@ -493,7 +561,7 @@ class Personalizer:
             else:
                 s -= 1.0
         s += 0.4 * self.interactions.popularity.get(pid, 0) / self._pop_max
-        return round(s, 3), reasons[:3]
+        return round(s, 3), reasons[:4]
 
     # ---- main search used by the agent tools and the Shop tab
     def search(self, user_id, query=None, domain=None, category=None, min_price=None, max_price=None,
@@ -519,8 +587,9 @@ class Personalizer:
                     q_terms.append({w, *SYNONYMS.get(w, [])})
         tag_set = {norm(t) for t in (tags or [])}
         affinity = self.interactions.category_affinity(user_id)
-        recs = self.recommender.for_user(user_id)
-        rec_pos = {p: i + 1 for i, p in enumerate(recs)}
+        recs = self.recommender.ranked_for_user(user_id)
+        rec_pos = {row["product_id"]: row["model_rank"] for row in recs}
+        rec_reasons = {row["product_id"]: row.get("reasons", []) for row in recs}
 
         matched, hidden = [], Counter()
         for pid, p in cat.products.items():
@@ -552,7 +621,8 @@ class Personalizer:
             if not ok and not include_ineligible:
                 hidden[code] += 1
                 continue
-            s, reasons = self.score(user_id, pid, budget=max_price, affinity=affinity, rec_rank=rec_pos.get(pid))
+            s, reasons = self.score(user_id, pid, budget=max_price, affinity=affinity, rec_rank=rec_pos.get(pid),
+                                    model_reasons=rec_reasons.get(pid))
             matched.append((s + 3 * text_score, price, pid, reasons))
 
         key = {"price_asc": lambda m: (m[1], -m[0]), "price_desc": lambda m: (-m[1], -m[0]),
@@ -573,7 +643,8 @@ class Personalizer:
         cats = self.catalogue.resolve_category(category)[0] if category else set()
         picks, exclude = [], set(exclude_ids)
         affinity = self.interactions.category_affinity(user_id)
-        for rank, pid in enumerate(self.recommender.for_user(user_id), 1):
+        for row in self.recommender.ranked_for_user(user_id):
+            pid, rank = row["product_id"], row["model_rank"]
             p = self.catalogue.products[pid]
             if pid in exclude or (cats and p["category"] not in cats):
                 continue
@@ -581,8 +652,12 @@ class Personalizer:
                 continue
             if not self.catalogue.eligibility(user_id, pid)[0]:
                 continue
-            s, reasons = self.score(user_id, pid, budget=max_price, affinity=affinity, rec_rank=rank)
-            picks.append(self.catalogue.card(pid, user_id, {"source": "recommender", "rec_rank": rank, "why": reasons}))
+            s, reasons = self.score(user_id, pid, budget=max_price, affinity=affinity, rec_rank=rank,
+                                    model_reasons=row.get("reasons"))
+            extra = {"source": "recommender", "rec_rank": rank, "model_rank": rank, "why": reasons}
+            if row.get("consensus_rank") is not None:
+                extra["consensus_rank"] = row["consensus_rank"]
+            picks.append(self.catalogue.card(pid, user_id, extra))
             if len(picks) >= limit:
                 break
         if len(picks) < limit:

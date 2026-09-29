@@ -130,7 +130,9 @@ def session_start(body: StartIn):
 @app.post("/api/session/reset")
 def session_reset(body: StartIn):
     uid = valid_user(body.user_id)
-    ctx().memory.reset_conversation(uid)
+    c = ctx()
+    c.memory.reset_conversation(uid)
+    c.recommender.events_changed(uid, [])
     return session_start(body)
 
 
@@ -176,9 +178,19 @@ def _basket_op(uid, name, args, note):
     # This prevents a panel edit from racing between prepare_checkout and the
     # session-memory update that records its basket revision.
     with c.memory.lock(uid):
+        before = c.store.get_basket(uid)
         res = call_tool(c.store, uid, name, args)
         if res["ok"]:
             c.agent.record_ui_event(uid, note, res["data"]["revision"])
+            old = {row["product_id"]: row["quantity"] for row in before["items"]}
+            new = {row["product_id"]: row["quantity"] for row in res["data"]["items"]}
+            events = []
+            for pid in sorted(set(old) | set(new)):
+                if new.get(pid, 0) != old.get(pid, 0):
+                    events.append({"product_id": pid,
+                                   "event_type": "cart" if new.get(pid, 0) > old.get(pid, 0) else "cancel",
+                                   "event_date": c.config.demo_date, "app_section": "basket"})
+            c.agent.record_recommendation_events(uid, events)
             c.memory.log(uid, "ui_basket", {"tool": name, "args": args})
         return res
 

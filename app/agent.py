@@ -39,9 +39,10 @@ class AppContext:
         self.catalogue = Catalogue(self.store)
         self.profiles = Profiles(self.store)
         self.interactions = Interactions(config.interactions_path, self.catalogue)
-        self.recommender = Recommender(config.recommendation_model_path, self.catalogue)
-        self.personalizer = Personalizer(self.catalogue, self.profiles, self.interactions, self.recommender)
         self.memory = MemoryStore(config.memory_db)
+        self.recommender = Recommender(config.recommendation_model_path, self.catalogue,
+                                       lambda uid: self.memory.load_session(uid).get("recommendation_events", []))
+        self.personalizer = Personalizer(self.catalogue, self.profiles, self.interactions, self.recommender)
         if llm is None:
             from .llm import BedrockLLM
             llm = BedrockLLM(config)
@@ -62,7 +63,8 @@ class AppContext:
                 "interactions_loaded": self.interactions.available,
                 "interaction_columns": self.interactions.columns,
                 "recommender_source": self.recommender.source,
-                "recommender_users": len(self.recommender.ranked),
+                "recommender_users": len({key[0] for key in self.recommender.ranked}),
+                "recommender": self.recommender.status(),
                 "files": {k: str(getattr(self.config, k)) for k in
                           ("products_path", "customers_path", "interactions_path", "recommendation_model_path")}}
 
@@ -227,6 +229,16 @@ class CompanionAgent:
             if pending and basket_revision is not None and pending["revision"] != basket_revision:
                 session["pending_checkout"] = None
             self.ctx.memory.save_session(user_id, session)
+
+    def record_recommendation_events(self, user_id: str, events: list[dict]):
+        """Persist UI-originated model events and refresh this customer's cached ranking."""
+        if not events:
+            return
+        with self.ctx.memory.lock(user_id):
+            session = self.ctx.memory.load_session(user_id)
+            session["recommendation_events"] = (session.get("recommendation_events", []) + events)[-100:]
+            self.ctx.memory.save_session(user_id, session)
+            self.ctx.recommender.events_changed(user_id, session["recommendation_events"])
 
     def cancel_checkout(self, user_id: str):
         with self.ctx.memory.lock(user_id):

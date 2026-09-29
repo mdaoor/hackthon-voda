@@ -5,6 +5,16 @@ const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const cur = () => (S.cfg?.currency === "DEMO_UNITS" ? "" : " " + (S.cfg?.currency || ""));
 
+function toast(message, tone = "success") {
+  const el = document.createElement("div");
+  el.className = `toast ${tone}`;
+  el.setAttribute("role", tone === "error" ? "alert" : "status");
+  el.textContent = message;
+  $("#toast-region").appendChild(el);
+  window.setTimeout(() => el.remove(), 4200);
+}
+const panelLoading = (show) => { $("#panel-loading").hidden = !show; };
+
 async function api(path, opts = {}) {
   const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
   const isJson = (res.headers.get("content-type") || "").includes("json");
@@ -30,7 +40,13 @@ function md(text) {
 
 /* ------------------------------------------------------------------ entry */
 async function boot() {
-  S.cfg = await api("/api/config");
+  try { S.cfg = await api("/api/config"); }
+  catch (e) {
+    $("#entry-error").textContent = `The companion is unavailable: ${e.message}. Refresh to try again.`;
+    $("#entry-error").hidden = false;
+    toast("Could not connect to the companion.", "error");
+    return;
+  }
   S.sttMode = S.cfg.stt;
   const configured = new Set(S.cfg.configured_voice_languages || []);
   ["en-US", "ar-SA"].forEach((code) => {
@@ -52,13 +68,15 @@ async function boot() {
 }
 
 $("#entry-form").addEventListener("submit", (e) => { e.preventDefault(); openCustomer($("#user-id").value.trim()); });
+$("#user-id").addEventListener("input", (e) => e.target.removeAttribute("aria-invalid"));
 
 async function openCustomer(id, silent = false) {
   const err = $("#entry-error");
   err.hidden = true;
   if (!id) { err.textContent = "Enter a customer ID to continue."; err.hidden = false; return; }
   const btn = $("#entry-form .btn");
-  btn.disabled = true; btn.textContent = "Opening…";
+  const original = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = "<span>Opening…</span>";
   try {
     const data = await post("/api/session/start", { user_id: id });
     S.user = data.customer.user_id;
@@ -66,6 +84,7 @@ async function openCustomer(id, silent = false) {
     $("#entry").hidden = true; $("#app").hidden = false;
     renderHeader(data.customer);
     $("#messages").innerHTML = "";
+    $("#quick-prompts").hidden = false;
     S.pendingCheckout = data.pending_checkout;
     data.transcript.forEach(renderEntry);
     renderBasket(data.basket);
@@ -74,8 +93,12 @@ async function openCustomer(id, silent = false) {
     $("#input").focus();
   } catch (e) {
     sessionStorage.removeItem("companion_user");
-    if (!silent) { err.textContent = e.status === 404 ? e.message : `Couldn't open the companion: ${e.message}`; err.hidden = false; }
-  } finally { btn.disabled = false; btn.textContent = "Open companion"; }
+    if (!silent) {
+      err.textContent = e.status === 404 ? e.message : `Couldn't open the companion: ${e.message}`;
+      err.hidden = false;
+      $("#user-id").setAttribute("aria-invalid", "true");
+    }
+  } finally { btn.disabled = false; btn.innerHTML = original; }
 }
 
 function renderHeader(c) {
@@ -85,7 +108,8 @@ function renderHeader(c) {
 
 $("#btn-switch").onclick = () => {
   sessionStorage.removeItem("companion_user"); stopSpeaking();
-  S.user = null; $("#app").hidden = true; $("#entry").hidden = false; $("#user-id").value = ""; $("#user-id").focus();
+  S.user = null; $("#app").hidden = true; $("#entry").hidden = false; $("#user-id").value = "";
+  $("#user-id").removeAttribute("aria-invalid"); $("#user-id").focus();
 };
 $("#btn-new").onclick = async () => {
   if (!S.user || S.busy) return;
@@ -93,8 +117,11 @@ $("#btn-new").onclick = async () => {
   try {
     const data = await post("/api/session/reset", { user_id: S.user });
     $("#messages").innerHTML = ""; S.pendingCheckout = null;
+    $("#quick-prompts").hidden = false;
     data.transcript.forEach(renderEntry); renderBasket(data.basket); refreshPanel();
-  } finally { setBusy(false); }
+    toast("A fresh conversation is ready.");
+  } catch (e) { toast(`Could not start a new chat: ${e.message}`, "error"); }
+  finally { setBusy(false); }
 };
 
 /* ------------------------------------------------------------------ chat */
@@ -126,6 +153,7 @@ async function send(text, channel) {
     if (channel === "voice" || $("#speak-replies").checked) speak(r.text, r.language);
   } catch (e) {
     renderEntry({ role: "assistant", text: `Something went wrong: ${e.message}. Please try again.`, error: true });
+    toast("Message failed. Please try again.", "error");
   } finally { setBusy(false); }
 }
 
@@ -133,6 +161,7 @@ function setBusy(b) {
   S.busy = b;
   $("#typing").hidden = !b;
   $("#composer .send").disabled = b;
+  $("#input").disabled = b;
   if (b) scrollDown();
 }
 const scrollDown = () => requestAnimationFrame(() => { const m = $("#messages"); m.scrollTop = m.scrollHeight; });
@@ -141,6 +170,7 @@ function renderEntry(e) {
   const el = document.createElement("div");
   el.dir = "auto";
   if (e.role === "user") {
+    $("#quick-prompts").hidden = true;
     el.className = "msg user";
     const via = e.channel === "voice" ? "Spoken" : e.channel === "ui" ? "Button" : "";
     el.innerHTML = `${esc(e.text)}${via ? `<span class="via">${via}</span>` : ""}`;
@@ -222,25 +252,40 @@ document.addEventListener("click", async (e) => {
       document.querySelectorAll(".summary .row-actions").forEach((x) => x.remove());
       renderEntry({ role: "assistant", text: r.reply, order: r.order, actions: [{ tool: "confirm_order (app, after you pressed Confirm)", ok: r.ok, summary: r.ok ? `order ${r.order.order_id}` : r.error?.message }] });
       renderBasket(r.basket); refreshPanel();
+      toast("Order confirmed successfully.");
       if ($("#speak-replies").checked) speak(r.reply);
-    } catch (err) { renderEntry({ role: "assistant", text: err.message, error: true }); }
+    } catch (err) { renderEntry({ role: "assistant", text: err.message, error: true }); toast("Could not confirm the order.", "error"); }
     finally { setBusy(false); }
     return;
   }
   if (e.target.closest("[data-cancel]")) {
-    await post("/api/checkout/cancel", { user_id: S.user });
-    S.pendingCheckout = null;
-    document.querySelectorAll(".summary .row-actions").forEach((x) => x.remove());
-    return send("Not yet, I'd like to keep shopping.", "text");
+    try {
+      await post("/api/checkout/cancel", { user_id: S.user });
+      S.pendingCheckout = null;
+      document.querySelectorAll(".summary .row-actions").forEach((x) => x.remove());
+      return send("Not yet, I'd like to keep shopping.", "text");
+    } catch (err) { toast(`Could not pause checkout: ${err.message}`, "error"); return; }
   }
   const ask = e.target.closest("[data-ask]");
   if (ask && !S.busy) return send(ask.dataset.ask, "text");
 });
 
 /* ------------------------------------------------------------------ side panel */
-document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
+document.querySelectorAll(".tabs button").forEach((b) => {
+  b.onclick = () => showTab(b.dataset.tab);
+  b.onkeydown = (e) => {
+    if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+    e.preventDefault();
+    const tabs = [...document.querySelectorAll(".tabs button")];
+    const next = (tabs.indexOf(b) + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[next].focus(); tabs[next].click();
+  };
+});
 function showTab(name) {
-  document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  document.querySelectorAll(".tabs button").forEach((b) => {
+    const active = b.dataset.tab === name;
+    b.setAttribute("aria-selected", String(active)); b.tabIndex = active ? 0 : -1;
+  });
   ["home", "shop", "rewards", "basket"].forEach((t) => { $(`#tab-${t}`).hidden = t !== name; });
   if (name === "shop") loadShop();
   if (name === "rewards") loadRewards();
@@ -256,7 +301,11 @@ function miniProduct(p, extra = "") {
 }
 
 async function loadHome() {
-  const [h, m] = await Promise.all([api(`/api/customer/${S.user}/home`), api(`/api/customer/${S.user}/memory`)]);
+  panelLoading(true);
+  let h, m;
+  try { [h, m] = await Promise.all([api(`/api/customer/${S.user}/home`), api(`/api/customer/${S.user}/memory`)]); }
+  catch (e) { toast(`Could not refresh your space: ${e.message}`, "error"); return; }
+  finally { panelLoading(false); }
   const c = h.customer;
   const mem = [];
   if (m.goal) mem.push(`<dt>Goal</dt><dd>${esc(m.goal)}</dd>`);
@@ -283,7 +332,11 @@ async function loadShop(ev) {
   const params = new URLSearchParams();
   const q = $("#shop-q").value.trim(), cat = $("#shop-cat").value, max = $("#shop-max").value;
   if (q) params.set("q", q); if (cat) params.set("category", cat); if (max) params.set("max_price", max);
-  const r = await api(`/api/customer/${S.user}/shop?${params}`);
+  panelLoading(true);
+  let r;
+  try { r = await api(`/api/customer/${S.user}/shop?${params}`); }
+  catch (e) { toast(`Could not load products: ${e.message}`, "error"); return; }
+  finally { panelLoading(false); }
   if (!S.categoriesLoaded) {
     const opts = Object.entries(r.categories).map(([d, cats]) => `<optgroup label="${esc(d)}">${Object.keys(cats).map((c) => `<option value="${esc(c)}">${esc(c.replace(/_/g, " "))}</option>`).join("")}</optgroup>`).join("");
     $("#shop-cat").insertAdjacentHTML("beforeend", opts); S.categoriesLoaded = true;
@@ -294,7 +347,11 @@ async function loadShop(ev) {
 $("#shop-form").addEventListener("submit", loadShop);
 
 async function loadRewards() {
-  const r = await api(`/api/customer/${S.user}/rewards`);
+  panelLoading(true);
+  let r;
+  try { r = await api(`/api/customer/${S.user}/rewards`); }
+  catch (e) { toast(`Could not load rewards: ${e.message}`, "error"); return; }
+  finally { panelLoading(false); }
   const act = r.rewards_activity || {};
   $("#tab-rewards").innerHTML = `
     <div class="block"><h2>${esc((r.membership_tier || "").replace(/^./, (x) => x.toUpperCase()))} member</h2>
@@ -304,7 +361,10 @@ async function loadRewards() {
 }
 
 function renderBasket(b) {
-  $("#basket-count").textContent = b.items.reduce((a, i) => a + i.quantity, 0);
+  const count = b.items.reduce((a, i) => a + i.quantity, 0);
+  $("#basket-count").textContent = count;
+  $("#basket-count").setAttribute("aria-label", `${count} item${count === 1 ? "" : "s"}`);
+  $("#mobile-basket-count").textContent = count;
   $("#tab-basket").innerHTML = b.items.length ? `<div class="block">${b.items.map((i) => `
       <div class="mini"><div>${esc(i.product_name)}${i.is_subscription ? ` <span class="badge sub">subscription</span>` : ""}
         <div class="meta">${esc(i.unit_price)}${cur()} each</div>
@@ -318,10 +378,32 @@ function renderBasket(b) {
 $("#tab-basket").addEventListener("click", async (e) => {
   const q = e.target.closest("[data-qty]"), r = e.target.closest("[data-remove]");
   if (!q && !r) return;
-  const res = q ? await post("/api/basket/update", { user_id: S.user, product_id: q.dataset.qty, quantity: Number(q.dataset.q) })
-                : await post("/api/basket/remove", { user_id: S.user, product_id: r.dataset.remove, quantity: 0 });
-  if (res.ok) { renderBasket(res.data); S.pendingCheckout = null; document.querySelectorAll(".summary .row-actions").forEach((x) => x.remove()); }
-  else alert(res.error.message);
+  try {
+    const res = q ? await post("/api/basket/update", { user_id: S.user, product_id: q.dataset.qty, quantity: Number(q.dataset.q) })
+                  : await post("/api/basket/remove", { user_id: S.user, product_id: r.dataset.remove, quantity: 0 });
+    if (res.ok) {
+      renderBasket(res.data); S.pendingCheckout = null;
+      document.querySelectorAll(".summary .row-actions").forEach((x) => x.remove());
+      toast(r ? "Item removed from your basket." : "Basket updated.");
+    } else toast(res.error.message, "error");
+  } catch (err) { toast(`Could not update the basket: ${err.message}`, "error"); }
+});
+
+/* ------------------------------------------------------------------ quick prompts + mobile navigation */
+$("#quick-prompts").addEventListener("click", (e) => {
+  const prompt = e.target.closest("[data-prompt]");
+  if (prompt && !S.busy) send(prompt.dataset.prompt, "text");
+});
+
+$("#mobile-nav").addEventListener("click", (e) => {
+  const button = e.target.closest("[data-mobile]");
+  if (!button) return;
+  const name = button.dataset.mobile;
+  $("#app").classList.toggle("mobile-panel", name !== "chat");
+  document.querySelectorAll("[data-mobile]").forEach((b) => {
+    if (b === button) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
+  if (name !== "chat") showTab(name);
 });
 
 /* ------------------------------------------------------------------ voice: capture 16 kHz PCM -> Amazon Transcribe */
@@ -358,6 +440,7 @@ async function startRecording() {
   };
   V.src.connect(V.proc); V.proc.connect(V.ac.destination);
   V.rec = true; $("#btn-mic").classList.add("recording");
+  $("#btn-mic").setAttribute("aria-pressed", "true");
   status("Listening. Tap the mic again when you're done.");
   V.timer = setTimeout(stopRecording, 30000);
 }
@@ -365,6 +448,7 @@ async function startRecording() {
 async function stopRecording() {
   clearTimeout(V.timer);
   V.rec = false; $("#btn-mic").classList.remove("recording"); $("#btn-mic").classList.add("busy");
+  $("#btn-mic").setAttribute("aria-pressed", "false");
   $("#mic-ring").style.transform = "scale(1)";
   V.src?.disconnect(); V.proc?.disconnect(); V.stream?.getTracks().forEach((t) => t.stop());
   const rate = V.ac.sampleRate; await V.ac.close();
@@ -411,10 +495,10 @@ function browserRecognition() {
   stopSpeaking();
   const r = new SR(); V.recog = r;
   r.lang = chosen; r.interimResults = false; r.maxAlternatives = 1;
-  $("#btn-mic").classList.add("recording"); status("Listening…");
+  $("#btn-mic").classList.add("recording"); $("#btn-mic").setAttribute("aria-pressed", "true"); status("Listening…");
   r.onresult = (e) => { const t = e.results[0][0].transcript; if (t) sendVoice(t, chosen, [chosen]); };
   r.onerror = (e) => status(`Voice error: ${e.error}`);
-  r.onend = () => { V.recog = null; $("#btn-mic").classList.remove("recording"); if ($("#voice-status").textContent === "Listening…") status(""); };
+  r.onend = () => { V.recog = null; $("#btn-mic").classList.remove("recording"); $("#btn-mic").setAttribute("aria-pressed", "false"); if ($("#voice-status").textContent === "Listening…") status(""); };
   r.start();
 }
 
@@ -432,6 +516,7 @@ async function sendVoice(text, language, languages = []) {
     speak(r.text, r.language);
   } catch (e) {
     renderEntry({ role: "assistant", text: `Something went wrong: ${e.message}. Please try again.`, error: true });
+    toast("Voice message failed. Please try again.", "error");
   } finally { setBusy(false); }
 }
 

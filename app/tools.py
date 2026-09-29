@@ -151,8 +151,24 @@ class ToolExecutor:
 
     def _compact(self, card):
         keep = ("product_id", "name", "category", "final_price", "list_price", "discount_pct", "quality_tier",
-                "style_tags", "subscription", "eligible", "ineligible_reason", "why", "source", "rec_rank")
+                "style_tags", "subscription", "eligible", "ineligible_reason", "why", "source", "rec_rank",
+                "model_rank", "consensus_rank")
         return {k: card[k] for k in keep if k in card}
+
+    def _recommendation_event(self, st, product_id, event_type, app_section="shop"):
+        event = {"product_id": product_id, "event_type": event_type,
+                 "event_date": self.ctx.config.demo_date, "app_section": app_section}
+        st.session["recommendation_events"] = (st.session.get("recommendation_events", []) + [event])[-100:]
+        self.ctx.recommender.events_changed(st.user_id, st.session["recommendation_events"])
+
+    def _record_basket_delta(self, st, before, after):
+        old = {row["product_id"]: row["quantity"] for row in before.get("items", [])}
+        new = {row["product_id"]: row["quantity"] for row in after.get("items", [])}
+        for pid in sorted(set(old) | set(new)):
+            if new.get(pid, 0) > old.get(pid, 0):
+                self._recommendation_event(st, pid, "cart")
+            elif new.get(pid, 0) < old.get(pid, 0):
+                self._recommendation_event(st, pid, "cancel")
 
     # ------------------------------------------------------------------ dispatch
     def run(self, name: str, args: dict, st: TurnState) -> tuple[dict, bool]:
@@ -194,6 +210,7 @@ class ToolExecutor:
 
     # ------------------------------------------------------------------ starter tools
     def _starter(self, name, args, st: TurnState):
+        before = self.ctx.store.get_basket(st.user_id) if name in BASKET_MUTATIONS else None
         result = call_tool(self.ctx.store, st.user_id, name, args)  # user_id from session, never from the model
         if not result["ok"]:
             if name == "prepare_checkout" and result["error"]["code"] == "SUBSCRIPTION_TERMS_MISSING":
@@ -201,6 +218,7 @@ class ToolExecutor:
             return result
         data = result["data"]
         if name in BASKET_MUTATIONS:
+            self._record_basket_delta(st, before, data)
             st.basket_changed = True
             pending = st.session.get("pending_checkout")
             if pending and pending.get("revision") != data.get("revision"):
@@ -354,5 +372,7 @@ class ToolExecutor:
         st.session["last_order"] = {"order_id": order["order_id"], "total": order["total"],
                                     "items": [i["product_name"] for i in order["items"]]}
         st.long_term["orders"] = (st.long_term.get("orders", []) + [st.session["last_order"]])[-10:]
+        for item in order["items"]:
+            self._recommendation_event(st, item["product_id"], "purchase", "checkout")
         st.order, st.checkout, st.basket_changed = order, None, True
         return {"ok": True, "data": order}
